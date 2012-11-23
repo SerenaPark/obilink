@@ -1,4 +1,4 @@
-koccalink
+KoccaLink
 =========
 
 private content sharing project
