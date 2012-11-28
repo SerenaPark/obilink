@@ -104,6 +104,9 @@ goto run
 :msbuild-found
 @rem Build the sln with msbuild.
 msbuild node.sln /m /t:%target% /p:Configuration=%config% /clp:NoSummary;NoItemAndPropertyList;Verbosity=minimal /nologo
+xcopy .\Release\node.exe ..\..\bin\
+xcopy .\Release\node.lib ..\..\bin\
+xcopy .\Release\lib\*.* ..\..\bin\lib\ /e /k
 if errorlevel 1 goto exit
 
 :sign
