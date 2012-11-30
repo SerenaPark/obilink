@@ -22,8 +22,8 @@ table {border-collapse:collapse;}
 #media .tab ul {width:100%;}
 #media .tab ul li {width:33%; float:left; font-size:40px; line-height:120px; color:#fff; height:120px; overflow:hidden; text-align:center; background:#891010;}
 #media .tab ul li a {color:#fff;}
-#media .tab ul li.on {background:#fff; width:34%; color:#891010;}
-#media .tab ul li.on a {color:#000;}
+#media .tab ul li.on {background:#fff; width:34%;}
+#media .tab ul li.on a {color:#891010;}
 #media .list {padding-top:2px; clear:both; width:100%; overflow:hidden;}
 #media .list li {position:relative; height:110px; padding-left:150px; overflow:hidden; background:url(../img/line.png) repeat-x left bottom;}
 #media .list li img {position:absolute; left:0; top:0; border-bottom:2px solid #fff;}
