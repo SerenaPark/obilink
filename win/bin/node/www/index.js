@@ -12,10 +12,10 @@ function getFileList(dir, fileExt){
 	if(items.length > 0){
 		for(var i=0; i<items.length; i++){
 			var item = items[i];
-			var filepath = path.join(targetPath + "/" + item);
+			var filepath = path.join(dir + "/" + item);
 			if(path.extname(item) == fileExt){
 				var rtnItem = {
-					"filefullpath": filepath,
+					"filewebpath": filepath,
 					"filename": item
 				};
 				rtn.push(rtnItem);
