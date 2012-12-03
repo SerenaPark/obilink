@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shareddir>
+	<contents>
+		<path>D:\Project\NScreen2\src\koccalink\win\bin\node\www\contents</path>
+		<lnpath>contents/linkpath1</lnpath>
+	</contents>
+	<contents>
+		<path>D:\Project\NScreen2\src\koccalink\win\bin\node\www\contents</path>
+		<lnpath>contents/linkpath2</lnpath>
+	</contents>
+</shareddir>
