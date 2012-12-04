@@ -20,15 +20,19 @@ class AppView : public QMainWindow
 public:
     explicit AppView(QWidget *parent = 0);
     ~AppView();
+    bool loadXML();
+    bool saveXML(QListWidget *qlist);
+    bool getIPAddress();
 
 public slots:
-    void setConnectAddr();
     void insertSharedDir();
     void removeSharedDir();
-    void saveXML(QListWidget *qlist);
+
     
 private:
+    QString DBfile;
     Ui::AppView *ui;
+    bool setConnectAddr(QString addr);
 };
 
 #endif // APPVIEW_H
