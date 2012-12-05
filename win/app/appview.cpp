@@ -5,17 +5,21 @@
 #include <QXmlStreamReader>
 #include <QFile>
 #include <QMessageBox>
-
+#include <QtNetwork/QNetworkInterface>
 
 AppView::AppView(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::AppView)
+    ui(new Ui::AppView),
+    DBfile("./conf.xml")
 {
     ui->setupUi(this);
     setFixedSize(358, 640);
 
     connect(ui->btnplus, SIGNAL(clicked()), this, SLOT(insertSharedDir()));
-    connect(ui->btnminus, SIGNAL(clicked()), this, SLOT(removeShareDir()));
+    connect(ui->btnminus, SIGNAL(clicked()), this, SLOT(removeSharedDir()));
+
+    loadXML();
+    getIPAddress();
 }
 
 AppView::~AppView()
@@ -23,73 +27,97 @@ AppView::~AppView()
     delete ui;
 }
 
-void AppView::setConnectAddr()
+bool AppView::getIPAddress()
 {
-    ui->lb_addr->setText("http://192.168.0.1");
+    QList<QHostAddress> ipList = QNetworkInterface::allAddresses();
+
+    for (int i=0; i<ipList.size(); i++) {
+        // Filter for IPv4 Type Address without local loop address(127.0.0.1)
+        if (ipList.at(i) != QHostAddress::LocalHost && ipList.at(i).toIPv4Address()) {
+            if (ipList.at(i).toString() != NULL) {
+                return setConnectAddr(ipList.at(i).toString());
+            }
+        }
+    }
+    return false;
+}
+
+bool AppView::setConnectAddr(QString addr)
+{
+    ui->lb_addr->setText(addr.append(" : 8080"));
+    return true;
 }
 
 void AppView::insertSharedDir()
 {
-    /* Sample Code */
-    /*
-        <Open Dir Explorer>
-        QFileDialog *file = new QFileDialog(this);
-        file->setFileMode(QFileDialog::Directory);
-        file->exec();
-    */
-    new QListWidgetItem(QFileDialog::getExistingDirectory(), ui->listWidget);
-    saveXML(ui->listWidget);
-
+    QString currentDir = QFileDialog::getExistingDirectory();
+    if (currentDir != NULL) {
+        new QListWidgetItem(currentDir, ui->listWidget);
+        saveXML(ui->listWidget);
+    }
 }
 
 void AppView::removeSharedDir()
 {
-    int idx = ui->listWidget->currentRow();
-    ui->listWidget->takeItem(idx);
+    // Remove current index item from list && Update XML DB
+    ui->listWidget->takeItem(ui->listWidget->currentRow());
+    saveXML(ui->listWidget);
 }
 
-void AppView::saveXML(QListWidget *qlist)
+bool AppView::loadXML()
 {
-    /* Sample Code */
-    /*
-    <int to QString>
-    QString tmp2;
-    tmp2.setNum(sizeOfQlist);
-    ui->lb_addr->setText(tmp2);
-
-    <Use QMessageBox>
-    QMessageBox::warning(0, "TEST", qlist->item(i)->text());
-
-    <Read QListWidgetItem Text>
-    ui->lb_addr->setText(qlist->item(i)->text());
-    */
-    int i=0;
-    int sizeOfQlist = qlist->count();
-
-    QFile file("./contacts.xml");
-    if (!file.open(QIODevice::WriteOnly))
-    {
-        QMessageBox::warning(0, "Warning", "File is not created");
+    QFile loadfile(DBfile);
+    if (!loadfile.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(0, "Warning", "File is not loaded");
+        return false;
     }
-    else
-    {
-        QXmlStreamWriter *xmlWriter = new QXmlStreamWriter();
-        xmlWriter->setDevice(&file);
-        xmlWriter->writeStartDocument();
+    QXmlStreamReader xmlReader(&loadfile);
 
-        xmlWriter->writeStartElement("SHAREDDIR");
-
-        for (i=0; i<sizeOfQlist; i++)
-        {
-            xmlWriter->writeStartElement("PATH");
-            xmlWriter->writeCharacters(qlist->item(i)->text());
-            xmlWriter->writeEndElement();
+    while (!xmlReader.atEnd() && !xmlReader.hasError()) {
+        QXmlStreamReader::TokenType token = xmlReader.readNext();
+        if (token == QXmlStreamReader::StartDocument) {
+            continue;
         }
-
-        xmlWriter->writeEndElement();
-        xmlWriter->writeEndDocument();
-
-        delete xmlWriter;
-
+        if (token == QXmlStreamReader::StartElement) {
+            if (xmlReader.name() == "path") {
+               new QListWidgetItem(xmlReader.readElementText(), ui->listWidget);
+            }
+            else {
+               continue;
+            }
+        }
     }
+
+    xmlReader.clear();
+    loadfile.close();
+    return true;
+}
+
+bool AppView::saveXML(QListWidget *qlist)
+{
+    QFile savefile(DBfile);
+    if (!savefile.open(QIODevice::WriteOnly)) {
+        QMessageBox::warning(0, "Warning", "File is not created");
+        return false;
+    }
+
+    QXmlStreamWriter xmlWriter(&savefile);
+    xmlWriter.writeStartDocument();
+    xmlWriter.writeStartElement("shareddir");
+
+    for (int i=0; i<qlist->count(); i++) {
+        xmlWriter.writeStartElement("contents");
+        xmlWriter.writeStartElement("path");
+        xmlWriter.writeCharacters(qlist->item(i)->text());
+        xmlWriter.writeEndElement();
+        xmlWriter.writeStartElement("lnpath");
+        xmlWriter.writeCharacters(qlist->item(i)->text());
+        xmlWriter.writeEndElement();
+        xmlWriter.writeEndElement();
+    }
+
+    xmlWriter.writeEndElement();
+    xmlWriter.writeEndDocument();
+    savefile.close();
+    return true;
 }
