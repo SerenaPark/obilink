@@ -8,10 +8,14 @@
 #include <QtGui>
 #include <QListWidget>
 #include <QListWidgetItem>
+#include <QMessageBox>
+
+#define DBFILE "./shDir.xml"
 
 namespace Ui {
 class AppView;
 }
+
 
 class AppView : public QMainWindow
 {
@@ -20,18 +24,16 @@ class AppView : public QMainWindow
 public:
     explicit AppView(QWidget *parent = 0);
     ~AppView();
-    bool loadXML();
-    bool saveXML(QListWidget *qlist);
     bool getIPAddress();
+    Ui::AppView *ui;
+    static bool saveXML(QListWidget *qlist);
+    static bool loadXML(Ui::AppView *ui);
 
 public slots:
     void insertSharedDir();
     void removeSharedDir();
-
     
 private:
-    QString DBfile;
-    Ui::AppView *ui;
     bool setConnectAddr(QString addr);
 };
 

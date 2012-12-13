@@ -4,3 +4,4 @@
 /win/bin/node/www/font/*.*
 /win/bin/node/www/img/*.*
 /win/bin/node/www/js/*.*
+/win/app/*.user

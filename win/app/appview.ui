@@ -19,6 +19,24 @@
   <property name="styleSheet">
    <string notr="true">#centralWidget{background-image: url(:/images/images/background.PNG);}
 #lb_addr{color: rgb(255, 255, 255);}
+QPushButton#btnplus {
+     background-image: url(:/images/images/btnplus.png);
+     border-style: outset;
+	 border-color: beige;
+}
+QPushButton#btnplus:pressed {
+	background-image: url(:/images/images/btnplus_p.png);
+     border-style: inset;
+}
+QPushButton#btnminus {
+	background-image: url(:/images/images/btnminus.png);
+     border-style: outset;
+	 border-color: beige;
+}
+QPushButton#btnminus:pressed {
+	background-image: url(:/images/images/btnminus_p.png);
+	border-style: inset;
+}
 </string>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -45,7 +63,7 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-image: url(:/images/images/btnplus.png);</string>
+     <string notr="true"/>
     </property>
     <property name="text">
      <string/>
@@ -61,13 +79,14 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-image: url(:/images/images/btnminus.png);</string>
+     <string notr="true">
+</string>
     </property>
     <property name="text">
      <string/>
     </property>
    </widget>
-   <widget class="QListWidget" name="listWidget">
+   <widget class="myListWidget" name="listWidget">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -76,11 +95,24 @@
       <height>361</height>
      </rect>
     </property>
+    <property name="acceptDrops">
+     <bool>true</bool>
+    </property>
+    <property name="dragEnabled">
+     <bool>true</bool>
+    </property>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>myListWidget</class>
+   <extends>QListWidget</extends>
+   <header>mylistwidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

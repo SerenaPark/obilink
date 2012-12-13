@@ -13,9 +13,11 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        appview.cpp
+        appview.cpp \
+    mylistwidget.cpp
 
-HEADERS  += appview.h
+HEADERS  += appview.h \
+    mylistwidget.h
 
 FORMS    += appview.ui
 
