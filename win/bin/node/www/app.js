@@ -7,7 +7,7 @@ var confxmlPath = __dirname + "/../../conf.xml";
 var videoFileExt = [".avi", ".mp4"];
 var audioFileExt = [".mp3"];
 
-function isFileExtInArray(ext, arr){
+function isInArray(ext, arr){
 	return arr.indexOf(ext) < 0 ? false: true;
 }
 
@@ -20,7 +20,7 @@ function getFileList(dir, fileExt){
 			for(var i=0; i<items.length; i++){
 				var item = items[i];
 				var filepath = path.join(dir + "/" + item);
-				if(isFileExtInArray(path.extname(item), fileExt)){
+				if(isInArray(path.extname(item), fileExt)){
 					var rtnItem = {
 						"filewebpath": filepath,
 						"filename": item
@@ -37,12 +37,29 @@ function getFileList(dir, fileExt){
 }
 
 app.configure( function(){
+  app.use(express.bodyParser());
   app.use(express.methodOverride());
-  app.use(express.static(__dirname+ ''));
+  app.use(express.cookieParser());
+  app.use(express.session({
+  	secret: "secret",
+  	store: new express.session.MemoryStore
+  }));
+  // app.use(express.session({
+  // 	key: 'A_SESSION_KEY',
+  // 	secret: 'SOMETHING_REALLY_HARD_TO_GUESS',
+  // 	store: new express.session.MemoryStore
+  // }));
+  app.use(express.static(__dirname + ''));
+  app.use(express.directory(__dirname + ''));
   app.use(app.router);
+  app.use(express.logger('dev'));
 });
 
-app.get(/getVideoList/, function(req,res){
+app.get('/', function(req, res){
+	console.log(req);
+});
+
+app.get('/getVideoList', function(req,res){
 	var rtn = [];
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
@@ -57,7 +74,7 @@ app.get(/getVideoList/, function(req,res){
 	});
 });
 
-app.get(/getAudioList/, function(req,res){
+app.get('/getAudioList', function(req,res){
 	var rtn = [];
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
@@ -70,10 +87,29 @@ app.get(/getAudioList/, function(req,res){
 	    if(returnJson.length > 0)
 	    	res.end(returnJson);
 	});
-	// var resultJson = getFileList(tempAudioPath, ".mp3");
-	// //console.log(resultJson);
-	// if(resultJson.length != 0)
-	// 	res.end(resultJson);
+});
+
+var Dropbox = require("./dropboxClient");
+var client = new Dropbox;
+var sessionStore = [];
+
+app.get('/drop_autenticate', function(req, res){
+	if(!isInArray(req.sessionID,sessionStore)){
+		sessionStore.push(req.sessionID);
+		client.authenticate(function(){
+			res.redirect('/drop_getFileList');
+			res.send('success');
+		});
+	}
+	else{
+		res.redirect('/drop_getFileList');
+		res.send('success');
+	}
+});
+
+app.get('/drop_getFileList(/*)?', function(req,res){
+	client.getFileList();
+	res.send('success');
 });
 
 console.log('Express server start');
