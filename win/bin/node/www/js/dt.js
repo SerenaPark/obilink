@@ -54,3 +54,22 @@ $("#getlist").click(function(e) {
 	    }
 	});
 });
+
+$("#qrcode").click(function(e) {
+	$.ajax({
+	    type : "GET"
+	    , async : true
+	    , url : "request_qrcode"
+	    , cache : false
+	    , contentType: "application/x-www-form-urlencoded; charset=UTF-8"
+	    , error : function(request, status, error) {
+	     	//alert("code : " + request.status + "\r\nmessage : " + request.reponseText);
+	     	if(status == "timeout")
+	     		console.log("timeout");
+	    }
+	    , success : function(res, status, req) {
+	    	//alert("success");
+	    	console.log("success");
+	    }
+	});
+});

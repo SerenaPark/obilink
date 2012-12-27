@@ -34,17 +34,22 @@
 				for (var i=0; i<entry_stat.length; i++){
 					//case of files
 					if (entry_stat[i].isFile){
-						if (this.extCheck(entry_stat[i].name)){
+						if (this.getExtType(entry_stat[i].name).length > 0){
 							this.filelist.push(entry_stat[i].name);
 
 							$(".list").append($("<li>", {
 								click: __bind(function(event){
-									return __bind(onClickContents(event), this);
-								},this)
+									return __bind( this.onClickContents(event), this);
+								},this),
+								class: entry_stat[i].path
 							}).append($("<a>", {
 							})).append($("<img>", {
 								src: "img/ico_video.png",
-								alt: ""
+								alt: "",
+								class: entry_stat[i].path,
+								load: __bind(function(event){
+									return __bind(this.onLoadedThumnail(event), this);
+								},this)
 							})).append($("<h2>", {
 								text: entry_stat[i].name
 							})));
@@ -55,24 +60,54 @@
 		};
 
 		PCDropbox.prototype.onClickContents = function(event){
-			alert("click");
+			if (event.currentTarget.innerText.length > 0)
+				alert(event.currentTarget.className);
 		};
 
-		PCDropbox.prototype.extCheck = function(filename){
+		PCDropbox.prototype.onLoadedThumnail = function(event){
+			//load thumnail
+			var type = this.getExtType(event.currentTarget.className);
+			if(type == "video")
+				event.currentTarget.src = "img/ico_video.png";
+			else if(type == "audio")
+				event.currentTarget.src = "img/ico_audio.png";				
+			else if(type == "pic"){}
+			else{}
+			//  this.dbClient.readThumbnail(event.currentTarget.className, null, __bind(function(err, data, metadata){
+			//  	if (err){
+			// 		var type = this.getExtType(event.currentTarget.className);
+			// 		if(type == "video")
+			// 			event.currentTarget.src = "img/ico_video.png";
+			// 		else if(type == "audio")
+			// 			event.currentTarget.src = "img/ico_audio.png";				
+			// 		else if(type == "pic"){}
+			// 		else{}
+			// 		return;
+			//  	}
+
+			//  	event.currentTarget.src = "data:image/jpeg;base64," + data;
+			// }, this));
+		};
+
+		PCDropbox.prototype.getExtType = function(filename){
 			if ( (filename.indexOf(".") < 0) || (filename.length <= 0) )
-				return false;
+				return "";
 
 			var ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
 			if (ext.length < 0)
-				return false;
+				return "";
 
-			if ( (ext == "avi") || (ext == "mp4") || (ext == "jpeg") ||
-				 (ext == "jpg") || (ext == "gif") || (ext == "mp3") ||
-				 (ext == "ogg") ){
-				return true;
+			if ( (ext == "avi") || (ext == "mp4") ){
+				return "video";
+			}
+			else if(ext == "mp3"){
+				return "audio";
+			}
+			else if( (ext == "jpeg") || (ext == "jpg") || (ext == "gif") ){
+				return "pic";
 			}
 
-			return false;
+			return "";
 		};
 
 		return PCDropbox;
