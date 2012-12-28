@@ -100,13 +100,23 @@ app.get('/getPictureList', function(req,res){
 	});
 });
 
-app.get('/getAccessURL', function(req, res){
-	require('dns').lookup(require('os').hostname(), function (err, add, fam) {
-  		if (err){
-  			res.end("error");
-  			return;
-  		}
-  		res.end("http://" + add + ":8888/index.html")
+app.get('/*getAccessURL', function(req, res){
+	var net = require('net');
+	function getNetworkIP(callback) {
+	  var socket = net.createConnection(80, 'www.google.com');
+	  socket.on('connect', function() {
+	    callback(undefined, socket.address().address);
+	    socket.end();
+	  });
+	  socket.on('error', function(e) {
+	    callback(e, 'error');
+	  });
+	}
+	getNetworkIP(function (error, ip) {
+	    if (error) {
+	        console.log('error:', error);
+	    }
+	    res.end("http://" + ip + ":8888/index.html");
 	});
 });
 
