@@ -1,4 +1,2 @@
 /win/bin/node/www/contents/*.*
-/win/bin/node/www/font/*.*
-/win/bin/node/www/img/*.*
 /win/app/*.user
