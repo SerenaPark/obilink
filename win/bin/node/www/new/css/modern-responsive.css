@@ -12,6 +12,7 @@
  *
  * Variables.less
  */
+
 .fg-color-blue {
   color: #2d89ef !important;
 }
@@ -240,6 +241,9 @@
   .nav-bar .nav-bar-inner  > ul.menu {
     display: block !important;
   }
+  .listview.image li {
+    width: 460px;
+}
 }
 /*
  * Metro UI CSS
@@ -390,6 +394,9 @@
  *
  * Routines.less
  */
+ .listview.image li {
+  width: 460px;
+}
 .place-left {
   float: left !important;
   margin-right: 10px;
@@ -712,6 +719,10 @@
     right: 40px;
     font-size: 8pt;
   }
+  .listview.image li {
+    width: 100%;
+  }
+
 }
 /*
  * Metro UI CSS
@@ -832,5 +843,8 @@
   .tile-group {
     max-width: 400px;
     float: none;
+  }
+  .listview.image li {
+    width: 100%;
   }
 }

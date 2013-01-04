@@ -7,6 +7,14 @@
     <link href="css/modern-responsive.css" rel="stylesheet">
     <link href="css/site.css" rel="stylesheet" type="text/css">
     <link href="js/google-code-prettify/prettify.css" rel="stylesheet" type="text/css">
+    <style type="text/css">
+    .slide{
+        cursor:pointer;
+    }
+    .span6{
+        cursor:pointer;
+    }
+    </style>
     <title>KoccaLink</title>
 </head>
 <body class="modern-ui">
@@ -20,8 +28,7 @@
                         <div class="hero-unit">
                             <div id="carousel1" class="carousel" data-role="carousel" data-param-duration="100">
                                 <div class="slides">
-
-                                    <div class="slide" id="slide1">
+                                    <div class="slide" id="slide1" style="$('selector').css( 'cursor', 'pointer' );">
                                         <h1>Video</h1>
                                         <p class="bg-color-blueDark padding20 fg-color-white">
                                             Share and enjoy your private video contents in your <strong>home network</strong>.
@@ -63,6 +70,9 @@
                         <div class="span4 padding30 text-center place-left bg-color-blueLight" id="sponsorBlock">
                             <div id="kocca_qr">
                             </div>
+                            <br/>
+                            <br/>
+                            <h4 id="kocca_access_info"></h4>
                         </div>
                     </div>
                 </div>
@@ -70,21 +80,21 @@
 
             <div class="grid">
                 <div class="row">
-                    <div class="span6 bg-color-blue" style="margin-left:0px;">
+                    <div class="video span6 bg-color-blue" style="margin-left:0px;">
                         <img src="images/video128.png" class="place-right" style="margin: 10px;"/>
                         <h2 class="fg-color-white">&nbsp;Video</h2>
                     </div>
 
-                    <div class="span6 bg-color-green" style="margin-right:0px; float:right;">
+                    <div class="audio span6 bg-color-green submenu" style="margin-right:0px; float:right;">
                         <img src="images/music128.png" class="place-right" style="margin: 10px;"/>
                         <h2 class="fg-color-white">&nbsp;Audio</h2>
                     </div>
 
-                    <div class="span6 bg-color-yellow" style="margin-left:0px;">
+                    <div class="pic span6 bg-color-yellow submenu" style="margin-left:0px;">
                         <img src="images/picture128.png" class="place-right" style="margin: 10px;"/>
                         <h2 class="fg-color-white">&nbsp;Pic</h2>
                     </div>
-                    <div class="span6 bg-color-grayDark" style="margin-right:0px;float:right;">
+                    <div class="cloud span6 bg-color-grayDark submenu" style="margin-right:0px;float:right;">
                         <img src="images/rss128.png" class="place-right" style="margin: 10px;"/>
                         <h2 class="fg-color-white">&nbsp;Cloud</h2>
                     </div>
@@ -120,38 +130,63 @@
     <script type="text/javascript" src="js/google-code-prettify/prettify.js"></script>
     <script src="js/qrcode.js"></script>
     <script>
-var draw_qrcode = function(text, typeNumber, errorCorrectLevel) {
-    document.write(create_qrcode(text, typeNumber, errorCorrectLevel) );
-};
+        var draw_qrcode = function(text, typeNumber, errorCorrectLevel) {
+            document.write(create_qrcode(text, typeNumber, errorCorrectLevel) );
+        };
 
-var create_qrcode = function(text, typeNumber, errorCorrectLevel, table) {
+        var create_qrcode = function(text, typeNumber, errorCorrectLevel, table) {
 
-    var qr = qrcode(typeNumber || 4, errorCorrectLevel || 'M');
-    qr.addData(text);
-    qr.make();
+            var qr = qrcode(typeNumber || 4, errorCorrectLevel || 'M');
+            qr.addData(text);
+            qr.make();
 
-    return qr.createImgTag(4);
-};
+            return qr.createImgTag(4);
+        };
 
-$(document).ready(function(){
-    $.ajax({
-        type : "GET"
-        , async : true
-        , url : "getAccessURL"
-        , cache : false
-        , contentType: "application/x-www-form-urlencoded; charset=UTF-8"
-        , error : function(request, status, error) {
-            if(status == "timeout")
-                console.log("timeout");
-        }
-        , success : function(res, status, req) {
-            var url = res;
-            if (res != "error")
-                document.getElementById('kocca_qr').innerHTML = create_qrcode(res);
-        }
-    });
-});
-</script>
-
-    </body>
+        $(document).ready(function(){
+            $.ajax({
+                type : "GET"
+                , async : true
+                , url : "getAccessURL"
+                , cache : false
+                , contentType: "application/x-www-form-urlencoded; charset=UTF-8"
+                , error : function(request, status, error) {
+                    if(status == "timeout")
+                        console.log("timeout");
+                }
+                , success : function(res, status, req) {
+                    var url = res;
+                    if (res != "error"){
+                        document.getElementById('kocca_qr').innerHTML = create_qrcode(res);
+                        $("#kocca_access_info").text(res);
+                    }
+                }
+            });
+        });
+        $("#slide1").click(function() {
+            $(location).attr('href', "videolist.html");
+        });
+        $(".video").click(function() {
+            $(location).attr('href', "videolist.html");
+        });
+        $("#slide2").click(function() {
+            $(location).attr('href', "audiolist.html");
+        });
+        $(".audio").click(function() {
+            $(location).attr('href', "audiolist.html");
+        });
+        $("#slide3").click(function() {
+            $(location).attr('href', "picturelist.html");
+        });
+        $(".pic").click(function() {
+            $(location).attr('href', "picturelist.html");
+        });
+        $("#slide4").click(function() {
+            $(location).attr('href', "cloudlist.html");
+        });
+        $(".cloud").click(function() {
+            $(location).attr('href', "cloudlist.html");
+        });
+    </script>
+</body>
 </html>

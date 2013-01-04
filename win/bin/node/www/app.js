@@ -116,7 +116,7 @@ app.get('/*getAccessURL', function(req, res){
 	    if (error) {
 	        console.log('error:', error);
 	    }
-	    res.end("http://" + ip + ":8888/index.html");
+	    res.end("http://" + ip + ":8888/new/index.html");
 	});
 });
 

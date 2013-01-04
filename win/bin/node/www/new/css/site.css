@@ -20,6 +20,15 @@ body {
     font-family: "Times New Roman", Georgia, Serif;
 }
 
+div.span10List{
+    width: 100%;
+}
+
+ul.listview{
+    margin-left: 0;
+    margin-right: 0;
+}
+
 
 #brand-name {
     line-height: 24px;
@@ -109,6 +118,12 @@ hr {
     position: absolute;
 }
 
+@media (min-width: 980px){
+    .listview.image li {
+        width: 460px;
+    }
+}
+
 @media (min-width: 768px) and (max-width: 979px) {
     .page {
         width: 724px;
@@ -118,6 +133,9 @@ hr {
     }
     .browsers-icons img {
         zoom: .8;
+    }
+    .listview.image li {
+        width: 100%;
     }
 }
 
@@ -153,6 +171,9 @@ hr {
     #carousel1 {
         height: 300px !important;
     }
+    .listview.image li {
+        width: 100%;
+    }
 }
 
 @media (max-width: 700px) {
@@ -165,5 +186,8 @@ hr {
     }
     #brand-name {
         display: none;
+    }
+    .listview.image li {
+        width: 100%;
     }
 }
