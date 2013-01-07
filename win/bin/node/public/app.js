@@ -45,8 +45,8 @@ app.configure( function(){
   	secret: "secret",
   	store: new express.session.MemoryStore
   }));
-  app.use(express.static(__dirname + ''));
-  app.use(express.directory(__dirname + ''));
+  app.use(express.static(__dirname + '/web'));
+  app.use(express.directory(__dirname + '/web'));
   app.use(app.router);
   app.use(express.logger('dev'));
 });
