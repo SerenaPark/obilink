@@ -61,11 +61,11 @@
 			for(var i=0; i<data.length; i++){
 		     	var item = data[i];
 		     	var innerHTML = "<li id=innerItem" + String(i) + " class= bg-color-pinkDark fg-color-white> \
-                         		<div class='icon' id='" + item.filewebpath + "'> \
+                         		<div class='icon' id='" + item.path + "'> \
                              		<img id=innerItemImage" + String(i) + " src='images/music128.png' /> \
 		                        </div> \
                          		<div class='data' id='" + item.filewebpath + "'> \
-                             		<h2 class='fg-color-white'>" + item.filename + "</h2> \
+                             		<h2 class='fg-color-white'>" + item.name + "</h2> \
                          		</div> \
                      			</li>";
 

@@ -9,34 +9,34 @@ var confxmlPath = __dirname + "/../../conf.xml";
 var videoFileExt = [".avi", ".mp4"];
 var audioFileExt = [".mp3"];
 
-function isInArray(ext, arr){
-	return arr.indexOf(ext) < 0 ? false: true;
-}
+// function isInArray(ext, arr){
+// 	return arr.indexOf(ext) < 0 ? false: true;
+// }
 
-function getFileList(dir, fileExt){
-	try {
-		var targetPath = path.join(__dirname + "/" + dir);
-		var items = fs.readdirSync(targetPath);
-		var rtn = [];
-		if (items.length > 0){
-			for(var i=0; i<items.length; i++) {
-				var item = items[i];
-				var filepath = path.join(dir + "/" + item);
-				if(isInArray(path.extname(item), fileExt)){
-					var rtnItem = {
-						"filewebpath": filepath,
-						"filename": item
-					};
-					rtn.push(rtnItem);
-				}
-			}
-		}
-		return rtn;
-	}
-	catch (err){
-		console.log("getFileList error");
-	}
-}
+// function getFileList(dir, fileExt){
+// 	try {
+// 		var targetPath = path.join(__dirname + "/" + dir);
+// 		var items = fs.readdirSync(targetPath);
+// 		var rtn = [];
+// 		if (items.length > 0){
+// 			for(var i=0; i<items.length; i++) {
+// 				var item = items[i];
+// 				var filepath = path.join(dir + "/" + item);
+// 				if(isInArray(path.extname(item), fileExt)){
+// 					var rtnItem = {
+// 						"filewebpath": filepath,
+// 						"filename": item
+// 					};
+// 					rtn.push(rtnItem);
+// 				}
+// 			}
+// 		}
+// 		return rtn;
+// 	}
+// 	catch (err){
+// 		console.log("getFileList error");
+// 	}
+// }
 
 app.configure( function(){
   app.use(express.bodyParser());
@@ -56,18 +56,51 @@ app.get('/', function(req, res){
 	console.log(req);
 });
 
+function getList(dir, fileTypeExts, type){
+	try {
+		var items = fs.readdirSync(path.join(__dirname + "/" + dir));
+		var rtn = [];
+		var filepath;
+		var rtnItem = {};
+		if (items.length > 0){
+			for(var i=0; i<items.length; i++) {
+				filepath = path.join(dir + "/" + items[i]);
+				var extname = path.extname(items[i]);
+				//if ( (extname.indexOf([".avi", ".mp4"])) < 0 ? false : true){
+				if ( fileTypeExts.indexOf(extname) >= 0 ){
+					rtnItem = { "path": filepath, "name": items[i], "type": type };
+					rtn.push(rtnItem);
+				}
+			}
+		}
+		return rtn;
+	}
+	catch (err){
+		console.log("getList error");
+		return null;
+	}
+}
+
+function comp(a, b){
+ 	if (a.name < b.name)
+    	return -1;
+  	if (a.name > b.name)
+    	return 1;
+  	return 0;
+}
+
 app.get('/getVideoList', function(req,res){
 	var rtn = [];
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
 	    parser.parseString(data, function (err, result) {	//xml2js parse	        
 	    	for(var i=0; i<result.shareddir.contents.length; i++){
-	        	rtn = rtn.concat( getFileList( String(result.shareddir.contents[i].lnpath), videoFileExt) );
+	        	rtn = rtn.concat( getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v") );
 	    	}
+		    var returnJson = JSON.stringify(rtn.sort(comp));
+		    if(returnJson.length > 0)
+		    	res.end(returnJson);
 	    });
-	    var returnJson = JSON.stringify(rtn);
-	    if(returnJson.length > 0)
-	    	res.end(returnJson);
 	});
 });
 
@@ -77,12 +110,12 @@ app.get('/getAudioList', function(req,res){
 	fs.readFile(confxmlPath, function(err, data) {
 	    parser.parseString(data, function (err, result) {	//xml2js parse	        
 	    	for(var i=0; i<result.shareddir.contents.length; i++){
-	        	rtn = rtn.concat(getFileList(String(result.shareddir.contents[i].lnpath), audioFileExt));
+	        	rtn = rtn.concat( getList( String(result.shareddir.contents[i].lnpath), audioFileExt, "a") );
 	    	}
+  		    var returnJson = JSON.stringify(rtn.sort(comp));
+		    if(returnJson.length > 0)
+		    	res.end(returnJson);
 	    });
-	    var returnJson = JSON.stringify(rtn);
-	    if(returnJson.length > 0)
-	    	res.end(returnJson);
 	});
 });
 
@@ -107,32 +140,15 @@ app.get('/getDropboxList', function(req,res){
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
 	    parser.parseString(data, function (err, result) {	//xml2js parse
-	    	var ext = videoFileExt.concat(audioFileExt);
-	    	rtn = rtn.concat(getFileList(String(result.shareddir.dropbox[0].lnpath), ext));
-	    });
-	    var returnJson = JSON.stringify(rtn);
-	    if(returnJson.length > 0)
-	    	res.end(returnJson);
-	});
-});
+	    	var vlist = getList( String(result.shareddir.dropbox[0].lnpath), videoFileExt, "v" );	    	
+	    	var alist = getList( String(result.shareddir.dropbox[0].lnpath), audioFileExt, "a" );
+	    	vlist.sort(comp);
+	    	alist.sort(comp);
 
-app.get('/*getAccessURL', function(req, res){
-	var net = require('net');
-	function getNetworkIP(callback) {
-	  var socket = net.createConnection(80, 'www.google.com');
-	  socket.on('connect', function() {
-	    callback(undefined, socket.address().address);
-	    socket.end();
-	  });
-	  socket.on('error', function(e) {
-	    callback(e, 'error');
-	  });
-	}
-	getNetworkIP(function (error, ip) {
-	    if (error) {
-	        console.log('error:', error);
-	    }
-	    res.end("http://" + ip + ":8888/index.html");
+	    	var returnJson = JSON.stringify(vlist.concat(alist));
+		    if(returnJson.length > 0)
+		    	res.end(returnJson);
+	    });
 	});
 });
 

@@ -29,7 +29,7 @@
                              		<img id=innerItemImage" + String(i) + " src='images/video128.png' /> \
 		                        </div> \
                          		<div class='data'> \
-                             		<h2 class='fg-color-white'>" + item.filename + "</h2> \
+                             		<h2 class='fg-color-white'>" + item.name + "</h2> \
                          		</div> \
                      			</li>";
 

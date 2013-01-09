@@ -24,12 +24,23 @@
 		DropboxList.prototype.onReadDropboxList = function(data){ 			
 			for(var i=0; i<data.length; i++){
 		     	var item = data[i];
-		     	var innerHTML = "<li id=innerItem" + String(i) + " class= bg-color-blueDark fg-color-white> \
+		     	var icon = "images/video128.png";
+		     	var bgcolor = "bg-color-blueDark";
+		     	if( item.type == "v" ){
+		     		icon = "images/video128.png";
+		     		bgcolor = "bg-color-blueDark";
+		     	}
+		     	else if( item.type == "a" ){
+		     		icon = "images/music128.png";
+		     		bgcolor = "bg-color-pinkDark";
+		     	}
+
+		     	var innerHTML = "<li id=innerItem" + String(i) + " class= " + bgcolor + " fg-color-white> \
                          		<div class='icon'> \
-                             		<img id=innerItemImage" + String(i) + " src='images/video128.png' /> \
+                             		<img id=innerItemImage" + String(i) + " src='" + icon + "' /> \
 		                        </div> \
                          		<div class='data'> \
-                             		<h2 class='fg-color-white'>" + item.filename + "</h2> \
+                             		<h2 class='fg-color-white'>" + item.name + "</h2> \
                          		</div> \
                      			</li>";
 
@@ -66,8 +77,6 @@
 				}				
 			});
 		};
-
-
 
 		return DropboxList;
 	})();
