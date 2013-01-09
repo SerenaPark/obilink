@@ -3,40 +3,10 @@ var app=express();
 var fs = require('fs');
 var path = require('path');
 var xml2js = require('xml2js');
-var qs = require('querystring');
 var musicmetadata = require('musicmetadata');
 var confxmlPath = __dirname + "/../../conf.xml";
 var videoFileExt = [".avi", ".mp4"];
 var audioFileExt = [".mp3"];
-
-// function isInArray(ext, arr){
-// 	return arr.indexOf(ext) < 0 ? false: true;
-// }
-
-// function getFileList(dir, fileExt){
-// 	try {
-// 		var targetPath = path.join(__dirname + "/" + dir);
-// 		var items = fs.readdirSync(targetPath);
-// 		var rtn = [];
-// 		if (items.length > 0){
-// 			for(var i=0; i<items.length; i++) {
-// 				var item = items[i];
-// 				var filepath = path.join(dir + "/" + item);
-// 				if(isInArray(path.extname(item), fileExt)){
-// 					var rtnItem = {
-// 						"filewebpath": filepath,
-// 						"filename": item
-// 					};
-// 					rtn.push(rtnItem);
-// 				}
-// 			}
-// 		}
-// 		return rtn;
-// 	}
-// 	catch (err){
-// 		console.log("getFileList error");
-// 	}
-// }
 
 app.configure( function(){
   app.use(express.bodyParser());
@@ -120,16 +90,24 @@ app.get('/getAudioList', function(req,res){
 });
 
 app.post('/getAudioThumbnail', function(req, res){
-	var reqAudioPath = req.body.filepath;
+	var reqAudioPath = req.body.path;
+	var reqAudioId = req.body.selectedAudioID;
+
 	if(reqAudioPath){
 		var parser = new musicmetadata(fs.createReadStream(__dirname + "/" + reqAudioPath));		
 		parser.on('metadata', function(result) {
    			if(result.picture){
-   				fs.writeFile('test.jpg', result.picture.data);
-   				// var item = new Object();
-   				// item.title = result.title;
-   				// item.picture = result.picture.toString('base64');
-   				// res.end(JSON.stringify(item));
+   				var item = new Object();
+
+				item.selectedAudioId = reqAudioId;
+
+   				if(result.title.length > 0)
+   					item.title = result.title;
+
+   				if(result.picture.length > 0)
+   					item.picture = result.picture[0].data.toString('base64');
+
+   				res.end(JSON.stringify(item));
    			}
  		});
 	}
