@@ -19,13 +19,12 @@
 		};
 
 		AudioList.prototype.onReceiveItemImage = function(data){
-			// if(data && data.picture[0]){
-			// 	var src = "data:image/jpg," + data.picture.toString();
-			// 	$('#innerItemImage0').attr("src", src);
-			// 	$('#innerItemImage0').attr("width", "128");
-			// 	$('#innerItemImage0').attr("height", "128");
-			// 	//data.picture[0]
-			// }
+			if(data && data.picture){
+				var src = "data:image/jpg;base64," + data.picture.toString();
+				$("#" + data.selectedAudioId).attr("src", src);
+				$("#" + data.selectedAudioId).attr("width", "128");
+				$("#" + data.selectedAudioId).attr("height", "128");
+			}
 		}
 
 		AudioList.prototype.onLoadItemImage = function(event){
@@ -35,13 +34,13 @@
 			if (selectedImg){
 				//get audio file path
 				var div = selectedImg.parentNode;
-				var filewebpath = div.id;
-				if (filewebpath.length > 0){
+				var filepath = div.id;
+				if (filepath.length > 0){
 					$.ajax({
 						type : "POST"
 						, async : true
 						, url : "getAudioThumbnail"
-						, data : {filepath : filewebpath}
+						, data : {path : filepath, selectedAudioID : selectedImg.id}
 						, dataType : "json"
 						, timeout : 3000
 						, cache : false
