@@ -23,6 +23,12 @@ body {
 div.span10List{
     width: 100%;
 }
+div.span6{
+    width: 100%;   
+}
+ul.listview.image li{
+    width: 100%;      
+}
 
 ul.listview{
     margin-left: 0;

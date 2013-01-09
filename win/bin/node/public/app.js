@@ -3,22 +3,23 @@ var app=express();
 var fs = require('fs');
 var path = require('path');
 var xml2js = require('xml2js');
+var qs = require('querystring');
+var musicmetadata = require('musicmetadata');
 var confxmlPath = __dirname + "/../../conf.xml";
 var videoFileExt = [".avi", ".mp4"];
 var audioFileExt = [".mp3"];
-var pictureFileExt = [".jpeg", ".JPEG", ".jpg", ".JPEG", ".gif", ".GIF"];
 
 function isInArray(ext, arr){
 	return arr.indexOf(ext) < 0 ? false: true;
 }
 
 function getFileList(dir, fileExt){
-	try{
+	try {
 		var targetPath = path.join(__dirname + "/" + dir);
 		var items = fs.readdirSync(targetPath);
 		var rtn = [];
-		if(items.length > 0){
-			for(var i=0; i<items.length; i++){
+		if (items.length > 0){
+			for(var i=0; i<items.length; i++) {
 				var item = items[i];
 				var filepath = path.join(dir + "/" + item);
 				if(isInArray(path.extname(item), fileExt)){
@@ -32,7 +33,7 @@ function getFileList(dir, fileExt){
 		}
 		return rtn;
 	}
-	catch(err){
+	catch (err){
 		console.log("getFileList error");
 	}
 }
@@ -61,7 +62,7 @@ app.get('/getVideoList', function(req,res){
 	fs.readFile(confxmlPath, function(err, data) {
 	    parser.parseString(data, function (err, result) {	//xml2js parse	        
 	    	for(var i=0; i<result.shareddir.contents.length; i++){
-	        	rtn = rtn.concat(getFileList(String(result.shareddir.contents[i].lnpath), videoFileExt));
+	        	rtn = rtn.concat( getFileList( String(result.shareddir.contents[i].lnpath), videoFileExt) );
 	    	}
 	    });
 	    var returnJson = JSON.stringify(rtn);
@@ -85,14 +86,29 @@ app.get('/getAudioList', function(req,res){
 	});
 });
 
-app.get('/getPictureList', function(req,res){
+app.post('/getAudioThumbnail', function(req, res){
+	var reqAudioPath = req.body.filepath;
+	if(reqAudioPath){
+		var parser = new musicmetadata(fs.createReadStream(__dirname + "/" + reqAudioPath));		
+		parser.on('metadata', function(result) {
+   			if(result.picture){
+   				fs.writeFile('test.jpg', result.picture.data);
+   				// var item = new Object();
+   				// item.title = result.title;
+   				// item.picture = result.picture.toString('base64');
+   				// res.end(JSON.stringify(item));
+   			}
+ 		});
+	}
+});
+
+app.get('/getDropboxList', function(req,res){
 	var rtn = [];
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
-	    parser.parseString(data, function (err, result) {	//xml2js parse	        
-	    	for(var i=0; i<result.shareddir.contents.length; i++){
-	        	rtn = rtn.concat(getFileList(String(result.shareddir.contents[i].lnpath), pictureFileExt));
-	    	}
+	    parser.parseString(data, function (err, result) {	//xml2js parse
+	    	var ext = videoFileExt.concat(audioFileExt);
+	    	rtn = rtn.concat(getFileList(String(result.shareddir.dropbox[0].lnpath), ext));
 	    });
 	    var returnJson = JSON.stringify(rtn);
 	    if(returnJson.length > 0)
@@ -116,49 +132,9 @@ app.get('/*getAccessURL', function(req, res){
 	    if (error) {
 	        console.log('error:', error);
 	    }
-	    res.end("http://" + ip + ":8888/new/index.html");
+	    res.end("http://" + ip + ":8888/index.html");
 	});
 });
-
-// var Dropbox = require("./dropboxClient");
-// var client = new Dropbox;
-// app.get('/request_qrcode', function(req,res){
-// 	var rtn = [];
-// 	var parser = new xml2js.Parser();	//xml2js parser
-// 	fs.readFile(confxmlPath, function(err, data) {
-// 	    parser.parseString(data, function (err, result) {	//xml2js parse	        
-// 	    	for(var i=0; i<result.shareddir.contents.length; i++){
-// 	        	rtn = rtn.concat(getFileList(String(result.shareddir.contents[i].lnpath), audioFileExt));
-// 	    	}
-// 	    });
-// 	    var returnJson = JSON.stringify(rtn);
-// 	    if(returnJson.length > 0)
-// 	    	res.end(returnJson);
-// 	});
-// });
-
-// var Dropbox = require("./dropboxClient");
-// var client = new Dropbox;
-// var sessionStore = [];
-
-// app.get('/drop_autenticate', function(req, res){
-// 	if(!isInArray(req.sessionID,sessionStore)){
-// 		sessionStore.push(req.sessionID);
-// 		client.authenticate(function(){
-// 			res.redirect('/drop_getFileList');
-// 			res.send('success');
-// 		});
-// 	}
-// 	else{
-// 		res.redirect('/drop_getFileList');
-// 		res.send('success');
-// 	}
-// });
-
-// app.get('/drop_getFileList(/*)?', function(req,res){
-// 	client.getFileList();
-// 	res.send('success');
-// });
 
 console.log('Express server start');
 

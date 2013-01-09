@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shareddir>
 	<contents>
-		<path>D:\Project\NScreen2\src\koccalink\win\bin\node\www\contents</path>
+		<path>D:\Project\NScreen2\src\koccalink\win\bin\node\public\contents</path>
 		<lnpath>contents/linkpath1</lnpath>
 	</contents>
 	<contents>
-		<path>D:\Project\NScreen2\src\koccalink\win\bin\node\www\contents</path>
+		<path>D:\Project\NScreen2\src\koccalink\win\bin\node\public\contents</path>
 		<lnpath>contents/linkpath2</lnpath>
 	</contents>
+	<dropbox>
+		<path>C:\Users\krinteki\Dropbox\Apps\koccalink</path>
+		<lnpath>contents/dropbox</lnpath>
+	</dropbox>
 </shareddir>
