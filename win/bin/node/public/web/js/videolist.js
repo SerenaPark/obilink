@@ -15,6 +15,7 @@
 
 		VideoList.prototype.onMouseClickList = function(event){
 			console.log(event);
+			$(location).attr('href', event.currentTarget.attributes.href.nodeValue);
 		};
 
 		VideoList.prototype.onLoadItemImage = function(event){
@@ -24,7 +25,7 @@
 		VideoList.prototype.onReadVideoList = function(data){ 			
 			for(var i=0; i<data.length; i++){
 		     	var item = data[i];
-		     	var innerHTML = "<li id=innerItem" + String(i) + " class= bg-color-blueDark fg-color-white> \
+		     	var innerHTML = "<li href=" + item.path + " " + "id=innerItem" + String(i) + " class= bg-color-blueDark fg-color-white> \
                          		<div class='icon'> \
                              		<img id=innerItemImage" + String(i) + " src='images/video128.png' /> \
 		                        </div> \
