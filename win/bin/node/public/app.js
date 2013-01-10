@@ -91,7 +91,7 @@ app.get('/getAudioList', function(req,res){
 
 app.post('/getAudioThumbnail', function(req, res){
 	var reqAudioPath = req.body.path;
-	var reqAudioId = req.body.selectedAudioID;
+	var reqAudioId = req.body.selectedAudioId;
 
 	if(reqAudioPath){
 		var parser = new musicmetadata(fs.createReadStream(__dirname + "/" + reqAudioPath));		

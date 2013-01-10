@@ -40,7 +40,7 @@
 						type : "POST"
 						, async : true
 						, url : "getAudioThumbnail"
-						, data : {path : filepath, selectedAudioID : selectedImg.id}
+						, data : {path : filepath, selectedAudioId : selectedImg.id}
 						, dataType : "json"
 						, timeout : 3000
 						, cache : false
@@ -59,11 +59,15 @@
 		AudioList.prototype.onReadAudioList = function(data){ 			
 			for(var i=0; i<data.length; i++){
 		     	var item = data[i];
+		     	var iconId = item.path;
+		     	// Hack to support anode on android which has an unique album id to store thumnail.
+		     	if (item.albumId)
+		     		iconId = item.albumId;
 		     	var innerHTML = "<li id=innerItem" + String(i) + " class= bg-color-pinkDark fg-color-white> \
-                         		<div class='icon' id='" + item.path + "'> \
+                         		<div class='icon' id='" + iconId + "'> \
                              		<img id=innerItemImage" + String(i) + " src='images/music128.png' /> \
 		                        </div> \
-                         		<div class='data' id='" + item.filewebpath + "'> \
+                         		<div class='data' id='" + item.path + "'> \
                              		<h2 class='fg-color-white'>" + item.name + "</h2> \
                          		</div> \
                      			</li>";
