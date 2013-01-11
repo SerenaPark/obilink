@@ -19,13 +19,12 @@
 		};
 
 		AudioList.prototype.onReceiveItemImage = function(data){
-			// if(data && data.picture[0]){
-			// 	var src = "data:image/jpg," + data.picture.toString();
-			// 	$('#innerItemImage0').attr("src", src);
-			// 	$('#innerItemImage0').attr("width", "128");
-			// 	$('#innerItemImage0').attr("height", "128");
-			// 	//data.picture[0]
-			// }
+			if(data && data.picture){
+				var src = "data:image/jpg;base64," + data.picture.toString();
+				$("#" + data.selectedAudioId).attr("src", src);
+				$("#" + data.selectedAudioId).attr("width", "128");
+				$("#" + data.selectedAudioId).attr("height", "128");
+			}
 		}
 
 		AudioList.prototype.onLoadItemImage = function(event){
@@ -35,13 +34,13 @@
 			if (selectedImg){
 				//get audio file path
 				var div = selectedImg.parentNode;
-				var filewebpath = div.id;
-				if (filewebpath.length > 0){
+				var filepath = div.id;
+				if (filepath.length > 0){
 					$.ajax({
 						type : "POST"
 						, async : true
 						, url : "getAudioThumbnail"
-						, data : {filepath : filewebpath}
+						, data : {path : filepath, selectedAudioId : selectedImg.id}
 						, dataType : "json"
 						, timeout : 3000
 						, cache : false
@@ -60,12 +59,16 @@
 		AudioList.prototype.onReadAudioList = function(data){ 			
 			for(var i=0; i<data.length; i++){
 		     	var item = data[i];
+		     	var iconId = item.path;
+		     	// Hack to support anode on android which has an unique album id to store thumnail.
+		     	if (item.albumId)
+		     		iconId = item.albumId;
 		     	var innerHTML = "<li id=innerItem" + String(i) + " class= bg-color-pinkDark fg-color-white> \
-                         		<div class='icon' id='" + item.filewebpath + "'> \
+                         		<div class='icon' id='" + iconId + "'> \
                              		<img id=innerItemImage" + String(i) + " src='images/music128.png' /> \
 		                        </div> \
-                         		<div class='data' id='" + item.filewebpath + "'> \
-                             		<h2 class='fg-color-white'>" + item.filename + "</h2> \
+                         		<div class='data' id='" + item.path + "'> \
+                             		<h2 class='fg-color-white'>" + item.name + "</h2> \
                          		</div> \
                      			</li>";
 
