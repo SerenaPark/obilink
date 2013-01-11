@@ -1,27 +1,27 @@
 ( function(){
 	var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-	var VideoList;
-	VideoList = (function(){
-		function VideoList(root){
+	var DropboxList;
+	DropboxList = (function(){
+		function DropboxList(root){
 			this.$root = $(root);
 			this.filelist = [];
-		    this.readVideoList();
+		    this.readDropboxList();
 		};
 
-		VideoList.prototype.onError = function(req, status, error){
+		DropboxList.prototype.onError = function(req, status, error){
 			alert("code : " + request.status + "\r\nmessage : " + request.reponseText);
 		};
 
-		VideoList.prototype.onMouseClickList = function(event){
+		DropboxList.prototype.onMouseClickList = function(event){
 			console.log(event);
 		};
 
-		VideoList.prototype.onLoadItemImage = function(event){
+		DropboxList.prototype.onLoadItemImage = function(event){
 			console.log(event);
 		};
 
-		VideoList.prototype.onReadVideoList = function(data){ 			
+		DropboxList.prototype.onReadDropboxList = function(data){ 			
 			for(var i=0; i<data.length; i++){
 		     	var item = data[i];
 		     	var innerHTML = "<li id=innerItem" + String(i) + " class= bg-color-blueDark fg-color-white> \
@@ -47,13 +47,13 @@
 			}
 		};
 
-		VideoList.prototype.readVideoList = function(){
+		DropboxList.prototype.readDropboxList = function(){
 			var vl = this;
 
 			$.ajax({
 				type : "GET"
 				, async : true
-				, url : "getVideoList"
+				, url : "getDropboxList"
 				, dataType : "json"
 				, timeout : 3000
 				, cache : false
@@ -62,18 +62,18 @@
 					__bind(vl.onError(req, status, error), vl);
 				}				
 				, success : function(data){
-					__bind(vl.onReadVideoList(data), vl);
+					__bind(vl.onReadDropboxList(data), vl);
 				}				
 			});
 		};
 
 
 
-		return VideoList;
+		return DropboxList;
 	})();
 
 	$(function(){	    
-	    return new VideoList("#listview image fluid");
+	    return new DropboxList("#listview image fluid");
 	});
 
 }).call(this);
