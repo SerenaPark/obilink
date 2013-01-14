@@ -15,8 +15,8 @@ gen/
 #.project
 
 # Build files
+#libs/
 obj/
-libs/
 out/
 
 # OS generated files
