@@ -17,6 +17,7 @@ app.configure( function(){
   	store: new express.session.MemoryStore
   }));
   app.use(express.static(__dirname + '/web'));
+  app.use(express.static(__dirname + '/contents'));
   app.use(express.directory(__dirname + '/web'));
   app.use(app.router);
   app.use(express.logger('dev'));
@@ -28,7 +29,7 @@ app.get('/', function(req, res){
 
 function getList(dir, fileTypeExts, type, __vd__NameWithEndSlash){
 	try {
-		var items = fs.readdirSync(path.join(__dirname + "/" + dir));
+		var items = fs.readdirSync(path.join(__dirname + "/contents/" + dir));
 		var rtn = [];
 		var filepath;
 		var rtnItem = {};
@@ -36,9 +37,8 @@ function getList(dir, fileTypeExts, type, __vd__NameWithEndSlash){
 			for(var i=0; i<items.length; i++) {
 				filepath = path.join(__vd__NameWithEndSlash + dir + "/" + items[i]);
 				var extname = path.extname(items[i]);
-				//if ( (extname.indexOf([".avi", ".mp4"])) < 0 ? false : true){
 				if ( fileTypeExts.indexOf(extname) >= 0 ){
-					rtnItem = { "path": filepath, "name": items[i], "type": type };
+					rtnItem = { "path": filepath.split("\\").join("/"), "name": items[i], "type": type };
 					rtn.push(rtnItem);
 				}
 			}
@@ -94,7 +94,7 @@ app.post('/getAudioThumbnail', function(req, res){
 	var reqAudioId = req.body.selectedAudioId;
 
 	if(reqAudioPath){
-		var parser = new musicmetadata(fs.createReadStream(__dirname + "/" + reqAudioPath));		
+		var parser = new musicmetadata(fs.createReadStream(__dirname + "/contents/" + reqAudioPath));		
 		parser.on('metadata', function(result) {
    			if(result.picture){
    				var item = new Object();

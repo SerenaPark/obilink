@@ -15,7 +15,10 @@
 		};
 
 		AudioList.prototype.onMouseClickList = function(event){
-			console.log(event);
+			//var selectedItem = event.currentTarget.getAttribute("data-path");
+			$("#jquery_jplayer_1").jPlayer("setMedia", {
+		  		mp3: event.currentTarget.getAttribute("data-path")
+		  	}).jPlayer("play");	
 		};
 
 		AudioList.prototype.onReceiveItemImage = function(data){
@@ -63,7 +66,7 @@
 		     	// Hack to support anode on android which has an unique album id to store thumnail.
 		     	if (item.albumId)
 		     		iconId = item.albumId;
-		     	var innerHTML = "<li id=innerItem" + String(i) + " class= bg-color-pinkDark fg-color-white> \
+		     	var innerHTML = "<li id=innerItem" + String(i) + " class= bg-color-pinkDark fg-color-white data-path='" + item.path + "'> \
                          		<div class='icon' id='" + iconId + "'> \
                              		<img id=innerItemImage" + String(i) + " src='images/music128.png' /> \
 		                        </div> \
