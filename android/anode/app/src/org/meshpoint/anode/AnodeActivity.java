@@ -25,6 +25,7 @@ import org.meshpoint.anode.Runtime.StateListener;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -35,6 +36,16 @@ import android.view.View.OnKeyListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.ImageView;
+import android.net.DhcpInfo;
+import android.net.wifi.WifiManager;
+
+
+import com.koccalink.anode.qrcode.QRCodeEncoder;
+import com.koccalink.anode.qrcode.Contents;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+
 
 public class AnodeActivity extends Activity implements StateListener {
 
@@ -44,6 +55,8 @@ public class AnodeActivity extends Activity implements StateListener {
 	private Button stopButton;
 	private EditText argsText;
 	private TextView stateText;
+	private TextView qrcodeText;
+	private ImageView qrcodeImage;
 	private Handler viewHandler = new Handler();
 	private long uiThread;
 	private String instance;
@@ -77,7 +90,9 @@ public class AnodeActivity extends Activity implements StateListener {
     	        return false;
     	    }
     	});
-    	__stateChanged(Runtime.STATE_CREATED);
+    	qrcodeText = (TextView)findViewById(R.id.qrcode_textView);
+    	qrcodeImage = (ImageView)findViewById(R.id.qrcode_imageView);    	
+    	__stateChanged(Runtime.STATE_CREATED);    	
     }
     
     private void initRuntime(String[] opts) {
@@ -149,6 +164,8 @@ public class AnodeActivity extends Activity implements StateListener {
 		stateText.setText(getStateString(state));
 		startButton.setEnabled(state == Runtime.STATE_CREATED);
 		stopButton.setEnabled(state == Runtime.STATE_STARTED);
+		updateQRCodeInfo(state == Runtime.STATE_STARTED);
+    			
 		/* exit the activity if the runtime has exited */
 		if(state == Runtime.STATE_STOPPED) {
 			finish();
@@ -173,5 +190,50 @@ public class AnodeActivity extends Activity implements StateListener {
 			break;
 		}
 		return result;
+	}
+	
+	private String getWifiAddress() {
+		WifiManager wifiMgr = (WifiManager)getSystemService(WIFI_SERVICE);
+		String[] infos = wifiMgr.getDhcpInfo().toString().split(" ");
+
+		for (int i = 0; i < infos.length; i += 2) { 
+			if (infos[i].equals("ipaddr")) {
+				return infos[i+1];				
+			}
+		}
+		
+		return "";
+	}
+	
+	private void updateQRCodeInfo(boolean show)
+	{
+		String wifiAddr = getWifiAddress();
+		
+		if (!show || wifiAddr.equals("0.0.0.0")) {
+			if (wifiAddr.equals("0.0.0.0")) {
+				String no_wifi = ctx.getResources().getString(R.string.no_wifi);
+				qrcodeText.setText(no_wifi);				
+			} else {
+				qrcodeText.setText("");
+			}
+			
+			qrcodeImage.setImageBitmap(null);
+			
+			return;
+		}
+		
+		// FIXME
+		// hardcode needs to be replaced in other way 
+		String qrcodeURL = "http://" + wifiAddr + ":8888/index.html";
+		qrcodeText.setText(qrcodeURL);
+	
+		int smallerDimension = 100;
+		QRCodeEncoder qrEncoder = new QRCodeEncoder(qrcodeURL, null, Contents.Type.TEXT, BarcodeFormat.QR_CODE.toString(), smallerDimension);
+		try {
+			Bitmap qrcodeBitmap = qrEncoder.encodeAsBitmap();			
+			qrcodeImage.setImageBitmap(qrcodeBitmap);
+		} catch (WriterException e) {
+			e.printStackTrace();
+		}
 	}
 }

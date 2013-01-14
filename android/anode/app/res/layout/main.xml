@@ -1,14 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    >
-    <TextView android:layout_height="wrap_content" android:text="@string/arguments" android:layout_width="fill_parent"></TextView>
-<EditText android:layout_height="wrap_content" android:id="@+id/args_editText" android:layout_width="match_parent"></EditText>
-<LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout1" android:layout_width="match_parent" android:weightSum="1">
-    <Button android:id="@+id/start_button" android:layout_height="wrap_content" android:text="@string/start" android:layout_width="wrap_content"></Button>
-    <Button android:id="@+id/stop_button" android:layout_height="wrap_content" android:text="@string/stop" android:layout_width="wrap_content"></Button>
-    <TextView android:layout_height="wrap_content" android:id="@+id/args_stateText" android:layout_width="105dp" android:layout_weight="0.54"></TextView>
-</LinearLayout>
+    android:orientation="vertical" >
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/arguments" >
+    </TextView>
+
+    <EditText
+        android:id="@+id/args_editText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="/storage/extSdCard/app-anode.js" >
+    </EditText>
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="1" >
+
+        <Button
+            android:id="@+id/start_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/start" >
+        </Button>
+
+        <Button
+            android:id="@+id/stop_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/stop" >
+        </Button>
+
+        <TextView
+            android:id="@+id/args_stateText"
+            android:layout_width="105dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.54" >
+        </TextView>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.31" >
+
+        <TextView
+            android:id="@+id/qrcode_textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="26dp"
+            android:text="TextView" />
+
+        <ImageView
+            android:id="@+id/qrcode_imageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/icon" />
+
+    </RelativeLayout>
+
 </LinearLayout>
