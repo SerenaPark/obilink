@@ -2,14 +2,14 @@
 <shareddir>
 	<contents>
 		<path>D:\Project\NScreen2\src\koccalink\win\bin\node\public\contents</path>
-		<lnpath>contents/linkpath1</lnpath>
+		<lnpath>linkpath1</lnpath>
 	</contents>
 	<contents>
 		<path>D:\Project\NScreen2\src\koccalink\win\bin\node\public\contents</path>
-		<lnpath>contents/linkpath2</lnpath>
+		<lnpath>linkpath2</lnpath>
 	</contents>
 	<dropbox>
 		<path>C:\Users\krinteki\Dropbox\Apps\koccalink</path>
-		<lnpath>contents/dropbox</lnpath>
+		<lnpath>dropbox</lnpath>
 	</dropbox>
 </shareddir>
