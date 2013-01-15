@@ -1,0 +1,23 @@
+# Compiled files
+*.apk
+*.ap_
+*.dex
+*.class
+*.so
+*.node
+
+# ADK generated files
+bin/
+gen/
+
+# Eclipse project files
+#.classpath
+#.project
+
+# Build files
+#libs/
+obj/
+out/
+
+# OS generated files
+.DS_Store
