@@ -29,7 +29,7 @@ app.get('/', function(req, res){
 
 function getList(dir, fileTypeExts, type, __vd__NameWithEndSlash){
 	try {
-		var items = fs.readdirSync(path.join(__dirname + "/contents/" + dir));
+		var items = fs.readdirSync(path.join(__dirname + "\\contents\\" + dir));
 		var rtn = [];
 		var filepath;
 		var rtnItem = {};
@@ -104,6 +104,15 @@ app.post('/getAudioThumbnail', function(req, res){
    				if(result.title.length > 0)
    					item.title = result.title;
 
+   				if(result.album.length > 0)
+   					item.album = result.album;
+
+   				if(result.artist.length > 0)
+   					item.artist = result.artist[0];
+
+   				if(result.genre.length > 0)
+   					item.genre = result.genre[0];
+
    				if(result.picture.length > 0)
    					item.picture = result.picture[0].data.toString('base64');
 
@@ -133,13 +142,13 @@ app.get('/getDropboxList', function(req,res){
 app.get('/__vd__video/*', function(req, res) {
 	res.contentType('m3u8');
 	// make sure you set the correct path to your video file storage
-	var pathToMovie = __dirname + '/' + req.params[0]; 
+	var pathToMovie = __dirname + '/contents/' + req.params[0];
 	var proc = new ffmpeg({
-	source: pathToMovie,  // input source, required
-	timeout: 300*60, // timout of the spawned ffmpeg sub-processes in seconds (optional, defaults to 30)
-	priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
-	logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
-	nolog: false        // completely disable logging (optional, defaults to false)
+		source: pathToMovie,  // input source, required
+		timeout: 300*60, // timout of the spawned ffmpeg sub-processes in seconds (optional, defaults to 30)
+		priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
+		logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
+		nolog: false        // completely disable logging (optional, defaults to false)
 	})
 	.toFormat('mpegts')
 	.withVideoBitrate('480k')

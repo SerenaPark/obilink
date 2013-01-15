@@ -22,11 +22,17 @@
 		};
 
 		AudioList.prototype.onReceiveItemImage = function(data){
-			if(data && data.picture){
-				var src = "data:image/jpg;base64," + data.picture.toString();
-				$("#" + data.selectedAudioId).attr("src", src);
-				$("#" + data.selectedAudioId).attr("width", "128");
-				$("#" + data.selectedAudioId).attr("height", "128");
+			if(data){
+				// var selIndex = data.selectedAudioId.substr("innerItemImage".length, data.selectedAudioId.length - "innerItemImage".length);
+				// var innerHTML = "<h3 class='fg-color-yellow'>Artist:" + data.artist + ", Album:" + data.album + ", Genre:" + data.genre + "</h3>";
+				// $("#innerDetailInfo" + selIndex).append(innerHTML);
+
+				if(data.picture){
+					var src = "data:image/jpg;base64," + data.picture.toString();
+					$("#" + data.selectedAudioId).attr("src", src);
+					$("#" + data.selectedAudioId).attr("width", "128");
+					$("#" + data.selectedAudioId).attr("height", "128");
+				}
 			}
 		}
 
@@ -72,6 +78,8 @@
 		                        </div> \
                          		<div class='data' id='" + item.path + "'> \
                              		<h2 class='fg-color-white'>" + item.name + "</h2> \
+                         		</div> \
+                         		<div class='data' id='innerDetailInfo" + String(i) + "'> \
                          		</div> \
                      			</li>";
 
