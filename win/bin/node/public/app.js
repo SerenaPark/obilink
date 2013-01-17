@@ -24,8 +24,22 @@ app.configure( function(){
 });
 
 app.get('/', function(req, res){
-	console.log(req);
 });
+
+function getThumbURL(name, type){
+	var thumbURL;
+	if (type=="a"){
+		if (fs.existsSync(makeThumbnailPath(name, ".mp3"))){
+			thumbURL = "cache/" + encodeURI(path.basename(name, ".mp3")) + ".jpg";
+		}
+		else
+			thumbURL = "images/music128.png";
+	}
+	else if (type=="v"){
+
+	}
+	return thumbURL;
+}
 
 function getList(dir, fileTypeExts, type, __vd__NameWithEndSlash){
 	try {
@@ -38,7 +52,10 @@ function getList(dir, fileTypeExts, type, __vd__NameWithEndSlash){
 				filepath = path.join(__vd__NameWithEndSlash + dir + "/" + items[i]);
 				var extname = path.extname(items[i]);
 				if ( fileTypeExts.indexOf(extname) >= 0 ){
-					rtnItem = { "path": filepath.split("\\").join("/"), "name": items[i], "type": type };
+					rtnItem = { "path": filepath.split("\\").join("/"), 
+								"name": items[i], 
+								"type": type,
+							    "thumb" : getThumbURL(items[i], type) };						
 					rtn.push(rtnItem);
 				}
 			}
@@ -57,6 +74,61 @@ function comp(a, b){
   	if (a.name > b.name)
     	return 1;
   	return 0;
+}
+
+ 
+function prepairMetadata(){
+	makeAudioMetaData();
+}
+
+function makeThumbnailPath(filename, ext){
+	return  __dirname + "/contents/cache/" + path.basename(filename, ext) + ".jpg";
+}
+
+function makeThumbnail(contentsDir, items){
+	for(var i=0; i<items.length; i++) {
+		filepath = path.join(contentsDir + "/" + items[i]);
+		var extname = path.extname(items[i]);
+		if ( audioFileExt.indexOf(extname) >= 0 ){
+			//check exist thumbnail
+			if (!fs.existsSync(makeThumbnailPath(filepath, ".mp3"))){
+				//2. parsing mp3 metadata							
+				var parser = new musicmetadata(filepath, fs.createReadStream(filepath));
+				var filename = path.basename(items[i]);
+				parser.on('metadata', function(result) {
+					if(result.picture[0]){
+						//3. save mp3 thumbnails
+						fs.writeFileSync(makeThumbnailPath(this.filepath, ".mp3"), result.picture[0].data);
+					}
+				});
+			}
+		}
+	}
+}
+
+function makeAudioMetaData(){
+	//1. find mp3 files
+	var parser = new xml2js.Parser();	//xml2js parser
+	fs.readFile(confxmlPath, function(err, data) {
+	    parser.parseString(data, function (err, result) {	//xml2js parse
+	    	//case of shared local directory
+	    	if(result.shareddir.contents){
+		    	for(var i=0; i<result.shareddir.contents.length; i++){
+		     		var contentsDir = __dirname + "\\contents\\" + result.shareddir.contents[i].lnpath;
+		     		var items = fs.readdirSync(path.join(contentsDir));
+		     		makeThumbnail(contentsDir, items);
+		    	}
+	    	}
+	    	//case of dropbox 
+	    	if(result.shareddir.dropbox){
+			    for(var i=0; i<result.shareddir.dropbox.length; i++){
+		     		var contentsDir = __dirname + "\\contents\\" + result.shareddir.dropbox[i].lnpath;
+		     		var items = fs.readdirSync(path.join(contentsDir));
+		     		makeThumbnail(contentsDir, items);
+			    }
+	    	}
+	    });
+	});
 }
 
 app.get('/getVideoList', function(req,res){
@@ -163,6 +235,9 @@ app.get('/__vd__video/*', function(req, res) {
 	});
 });
 
-console.log('Express server start');
+console.log('Make the audio metadata db...');
+prepairMetadata();
+
+console.log('Ready web server');
 
 app.listen(8888);
