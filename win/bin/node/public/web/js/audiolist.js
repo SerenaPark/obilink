@@ -17,7 +17,8 @@
 		AudioList.prototype.onMouseClickList = function(event){
 			//var selectedItem = event.currentTarget.getAttribute("data-path");
 			$("#jquery_jplayer_1").jPlayer("setMedia", {
-		  		mp3: event.currentTarget.getAttribute("data-path")
+		  		//mp3: event.currentTarget.getAttribute("data-path")
+		  		mp3: "linkpath1/001-IGotABoy.mp3"
 		  	}).jPlayer("play");	
 		};
 
@@ -74,7 +75,7 @@
 		     		iconId = item.albumId;
 		     	var innerHTML = "<li id=innerItem" + String(i) + " class= bg-color-pinkDark fg-color-white data-path='" + item.path + "'> \
                          		<div class='icon' id='" + iconId + "'> \
-                             		<img id=innerItemImage" + String(i) + " src='images/music128.png' /> \
+                             		<img id=innerItemImage" + String(i) + " src='" + item.thumb+ "' /> \
 		                        </div> \
                          		<div class='data' id='" + item.path + "'> \
                              		<h2 class='fg-color-white'>" + item.name + "</h2> \
@@ -92,7 +93,7 @@
 
 	     		//Add New onLoadImage Event
 		     	$("#innerItemImage" + i).load( __bind( function(event){
-	     			this.onLoadItemImage(event);
+	     			//this.onLoadItemImage(event);
 	     		}, this));
 			}
 		};
