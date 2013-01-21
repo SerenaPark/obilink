@@ -20,6 +20,7 @@ app.configure( function(){
   }));
   app.use(express.static(__dirname + '/web'));
   app.use(express.static(__dirname + '/contents'));
+  app.use(express.static(__dirname));
   app.use(express.directory(__dirname + '/web'));
   app.use(app.router);
   app.use(express.logger('dev'));
@@ -46,11 +47,11 @@ fs.mkdirRecursiveSync = function(directory, mode) {
 	}
 };
 
-function getThumbURL(name, type){
+function getAudioThumbURL(name, type){
 	var thumbURL;
 	if (type=="a"){
-		if (fs.existsSync(makeThumbnailPath(name, ".mp3"))){
-			thumbURL = "cache/" + encodeURI(path.basename(name, ".mp3")) + ".jpg";
+		if (fs.existsSync(makeAudioThumbnailPath(name, ".mp3"))){
+			thumbURL = "cache/audio/" + encodeURI(path.basename(name, ".mp3")) + ".jpg";
 		}
 		else
 			thumbURL = "images/music128.png";
@@ -98,11 +99,12 @@ function comp(a, b){
 
  
 function prepairMetadata(){
+	fs.mkdirRecursiveSync(__dirname + "/cache/audio/");
 	makeAudioMetaData();
 }
 
-function makeThumbnailPath(filename, ext){
-	return  __dirname + "/contents/cache/" + path.basename(filename, ext) + ".jpg";
+function makeAudioThumbnailPath(filename, ext){
+	return  __dirname + "/cache/audio/" + path.basename(filename, ext) + ".jpg";
 }
 
 function makeThumbnail(contentsDir, items){
@@ -111,14 +113,14 @@ function makeThumbnail(contentsDir, items){
 		var extname = path.extname(items[i]);
 		if ( audioFileExt.indexOf(extname) >= 0 ){
 			//check exist thumbnail
-			if (!fs.existsSync(makeThumbnailPath(filepath, ".mp3"))){
+			if (!fs.existsSync(makeAudioThumbnailPath(filepath, ".mp3"))){
 				//2. parsing mp3 metadata							
 				var parser = new musicmetadata(filepath, fs.createReadStream(filepath));
 				var filename = path.basename(items[i]);
 				parser.on('metadata', function(result) {
 					if(result.picture[0]){
 						//3. save mp3 thumbnails
-						fs.writeFileSync(makeThumbnailPath(this.filepath, ".mp3"), result.picture[0].data);
+						fs.writeFileSync(makeAudioThumbnailPath(this.filepath, ".mp3"), result.picture[0].data);
 					}
 				});
 			}
