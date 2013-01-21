@@ -147,6 +147,8 @@ app.get('/getVideoList', function(req,res){
 });
 
 app.get('/getAudioList', function(req,res){
+	prepairMetadata();
+	
 	var rtn = [];
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
