@@ -18,18 +18,57 @@
 			$(location).attr('href', event.currentTarget.attributes.href.nodeValue);
 		};
 
+		VideoList.prototype.onReceiveItemImage = function(data){
+			if(data && data.picture){
+				var src = "data:image/jpg;base64," + data.picture.toString();
+				$("#" + data.selectedVideoId).attr("src", src);
+				$("#" + data.selectedVideoId).attr("width", "128");
+				$("#" + data.selectedVideoId).attr("height", "128");
+			}
+		}
+
 		VideoList.prototype.onLoadItemImage = function(event){
 			console.log(event);
+			var vl = this;
+
+			var selectedImg = event.currentTarget;
+			if (selectedImg){
+				//get audio file path
+				var div = selectedImg.parentNode;
+				var filepath = div.id;
+				if (filepath.length > 0){
+					$.ajax({
+						type : "POST"
+						, async : true
+						, url : "getVideoThumbnail"
+						, data : {path : filepath, selectedVideoId : selectedImg.id}
+						, dataType : "json"
+						, timeout : 3000
+						, cache : false
+						, contentType : "application/x-www-form-urlencoded; charset=UTF-8"
+						, error : function(req, error){
+							__bind(vl.onError(req, status, error), vl);
+						}				
+						, success : function(data){
+							__bind(vl.onReceiveItemImage(data), vl);
+						}				
+					});
+				}
+			}
 		};
 
 		VideoList.prototype.onReadVideoList = function(data){ 			
 			for(var i=0; i<data.length; i++){
 		     	var item = data[i];
-		     	var innerHTML = "<li href=\"" + item.path + "\"  " + "id=innerItem" + String(i) + " class= bg-color-blueDark fg-color-white> \
-                         		<div class='icon'> \
+		     	var iconId = item.path;
+		     	// Hack to support anode on android which has an unique album id to store thumnail.
+		     	if (item.albumId)
+		     		iconId = item.albumId;
+		     	var innerHTML = "<li href=\"" + item.path + "\" id=innerItem" + String(i) + " class= bg-color-blueDark fg-color-white> \
+                         		<div class='icon' id=\"" + iconId + "\"> \
                              		<img id=innerItemImage" + String(i) + " src='images/video128.png' /> \
 		                        </div> \
-                         		<div class='data'> \
+                         		<div class='data' id=\"" + item.path + "\"> \
                              		<h2 class='fg-color-white'>" + item.name + "</h2> \
                          		</div> \
                      			</li>";

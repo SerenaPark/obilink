@@ -7,6 +7,8 @@ var musicmetadata = require('musicmetadata');
 var confxmlPath = __dirname + "/../../conf.xml";
 var videoFileExt = [".avi", ".mp4"];
 var audioFileExt = [".mp3"];
+var virtualDirectoryVideo = "__vd__video";
+var videoCacheDir = "tmp-cache";
 
 app.configure( function(){
   app.use(express.bodyParser());
@@ -25,6 +27,24 @@ app.configure( function(){
 
 app.get('/', function(req, res){
 });
+
+fs.mkdirRecursiveSync = function(directory, mode) {
+	//Converting characters '/' to '\' in the directory path.
+	var dirPath = directory.replace(/\//g, '\\');
+	var parts = dirPath.split(/\\/gi);
+	var tmpPath = parts[0];
+
+	if(!fs.existsSync(tmpPath)) {
+		fs.mkdirSync(tmpPath, mode);
+	}
+
+	for(i=1; i < parts.length; i++ ) {
+		tmpPath = tmpPath + "\\" + parts[i];
+		if(!fs.existsSync(tmpPath)) {
+			fs.mkdirSync(tmpPath, mode);
+		}
+	}
+};
 
 function getThumbURL(name, type){
 	var thumbURL;
@@ -137,13 +157,103 @@ app.get('/getVideoList', function(req,res){
 	fs.readFile(confxmlPath, function(err, data) {
 	    parser.parseString(data, function (err, result) {	//xml2js parse	        
 	    	for(var i=0; i<result.shareddir.contents.length; i++){
-	        	rtn = rtn.concat( getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v", "__vd__video/") );
+	        	rtn = rtn.concat( getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v", virtualDirectoryVideo+"/") );
 	    	}
 		    var returnJson = JSON.stringify(rtn.sort(comp));
 		    if(returnJson.length > 0)
 		    	res.end(returnJson);
 	    });
 	});
+});
+
+app.post('/getVideoThumbnail', function(req, res){
+	var tmpPath = req.body.path;
+	var reqVideoId = req.body.selectedVideoId;
+	var item = new Object();
+	item.selectedVideoId = reqVideoId;
+	item.picture = "";
+
+	if(tmpPath) {
+		var reqVideoPath = "/contents" + tmpPath.substring(tmpPath.indexOf(virtualDirectoryVideo)+virtualDirectoryVideo.length);
+		reqVideoPath = reqVideoPath.replace(/\//g, '\\');  //same-code: reqVideoPath = reqVideoPath.split("/").join("\\");
+
+		//check a previous thumbnail file.
+		var thumnailFile = __dirname + "\\" + videoCacheDir + reqVideoPath + ".jpg";
+		var thumnailPath = thumnailFile.substring(0, thumnailFile.lastIndexOf('\\'));
+
+		if(fs.existsSync(thumnailFile)) {
+			var thumbNailData = fs.createReadStream(thumnailFile, {flags: 'r', encoding: 'base64', bufferSize: 8192 });
+			thumbNailData.on('data', function(d) {
+				//YOHO:Error - Do not read and append small buffer data. Currently it makes data length error.
+				//I don't know why, maybe nodejs fs module bugs!!!. If you avoid this problem,
+				//keep bufferSize 2-times larger than jpg file size to read all data of a thumbnail file at a time.
+				//base64 encoded size: if original data is 55 bytes, the encoded size is (55/3) * 4 = 19 * 4 = 76 bytes.
+				//about 30% increasing.
+				item.picture = item.picture + d;
+			});
+			thumbNailData.on('error', function(e) {
+				item.picture = "";
+			});
+			thumbNailData.on('close', function() {
+				res.end(JSON.stringify(item));
+				console.log("Screenshots: "+thumnailFile.substring(thumnailFile.lastIndexOf('\\')+1)+" was replied.");
+			});
+		}
+		else {
+			// make a directory for thumbnail files.
+			fs.mkdirRecursiveSync(thumnailPath);
+
+			// make sure you set the correct path to your video file storage
+			var pathToMovie = __dirname + reqVideoPath;
+			
+			var proc = new ffmpeg({
+				source: pathToMovie,  // input source, required
+				timeout: 300*60, // timout of the spawned ffmpeg sub-processes in seconds (optional, defaults to 30)
+				priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
+				logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
+				nolog: false        // completely disable logging (optional, defaults to false)
+			})
+			.withSize('128x128')
+			// take 2 screenshots at predefined timemarks
+			//.takeScreenshots({ count: 2, timemarks: [ '50%', '75%' ], filename: '%f' }, thumnailPath, function(error, filenames) {
+			//.takeScreenshots({ count: 2, timemarks: [ '0.5', '1.0' ], filename: '%f' }, thumnailPath, function(error, filenames) {
+
+			// take 1 screenshots at predefined timemarks
+			.takeScreenshots({ count: 1, timemarks: [ '1.0' ], filename: '%f' }, thumnailPath, function(error, filenames) {
+				console.log("----Start-Msg-------------------------------------");
+				if(error) {
+					console.log("Error-Msg: " + error);
+				}
+				else {
+					console.log("Screenshots: "+filenames+" was saved.");
+				}
+				console.log("----End-Msg---------------------------------------");
+				if(filenames) {
+					var thumbNailData = fs.createReadStream(thumnailFile, {flags: 'r', encoding: 'base64', bufferSize: 8192 });
+					thumbNailData.on('data', function(d) {
+						//YOHO:Error - Do not read and append small buffer data. Currently it makes data length error.
+						//I don't know why, maybe nodejs fs module bugs!!!. If you avoid this problem,
+						//keep bufferSize 2-times larger than jpg file size to read all data of a thumbnail file at a time.
+						//base64 encoded size: if original data is 55 bytes, the encoded size is (55/3) * 4 = 19 * 4 = 76 bytes.
+						//about 30% increasing.
+						item.picture = item.picture + d;
+					});
+					thumbNailData.on('error', function(e) {
+						item.picture = "";
+					});
+					thumbNailData.on('close', function() {
+						res.end(JSON.stringify(item));
+						console.log("Screenshots: "+filenames+" was replied.");
+						//fs.unlinkSync(thumnailFile);
+						//console.log("Screenshots: "+filenames+" was deleted after using.");
+					});
+				}
+				else {
+					res.end(JSON.stringify(item));
+				}
+			});
+		}
+	}
 });
 
 app.get('/getAudioList', function(req,res){
@@ -213,7 +323,7 @@ app.get('/getDropboxList', function(req,res){
 	});
 });
 
-app.get('/__vd__video/*', function(req, res) {
+app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 	res.contentType('m3u8');
 	// make sure you set the correct path to your video file storage
 	var pathToMovie = __dirname + '/contents/' + req.params[0];
@@ -233,7 +343,12 @@ app.get('/__vd__video/*', function(req, res) {
 	.addOptions(['-bt 200k', '-subq 7', '-me_range 16', '-qcomp 0.6', '-qmin 10', '-qmax 51'])
 	// save to stream
 	.writeToStream(res, function(retcode, error){
-		console.log( ' video file: ' + req.params[0] + ' has been converted succesfully');
+		console.log("----Start-Msg-------------------------------------");
+		if(error) {
+			//console.log("Error-Msg: " + error);
+		}
+		console.log("Video-File: " + req.params[0] + " has been converted succesfully.");
+		console.log("----End-Msg---------------------------------------");
 	});
 });
 
