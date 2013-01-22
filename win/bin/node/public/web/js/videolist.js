@@ -24,6 +24,7 @@
 				$("#" + data.selectedVideoId).attr("src", src);
 				$("#" + data.selectedVideoId).attr("width", "128");
 				$("#" + data.selectedVideoId).attr("height", "128");
+				$("#" + data.selectedVideoId).attr("isThumbTried", "yes");
 			}
 		}
 
@@ -32,8 +33,8 @@
 			var vl = this;
 
 			var selectedImg = event.currentTarget;
-			if (selectedImg){
-				//get audio file path
+			if (selectedImg && (selectedImg.attributes.isThumbTried.nodeValue == 'no')){
+				//get video file path
 				var div = selectedImg.parentNode;
 				var filepath = div.id;
 				if (filepath.length > 0){
@@ -59,31 +60,30 @@
 
 		VideoList.prototype.onReadVideoList = function(data){ 			
 			for(var i=0; i<data.length; i++){
-		     	var item = data[i];
-		     	var iconId = item.path;
-		     	// Hack to support anode on android which has an unique album id to store thumnail.
-		     	if (item.albumId)
-		     		iconId = item.albumId;
-		     	var innerHTML = "<li href=\"" + item.path + "\" id=innerItem" + String(i) + " class= bg-color-blueDark fg-color-white> \
-                         		<div class='icon' id=\"" + iconId + "\"> \
-                             		<img id=innerItemImage" + String(i) + " src='images/video128.png' /> \
-		                        </div> \
-                         		<div class='data' id=\"" + item.path + "\"> \
-                             		<h2 class='fg-color-white'>" + item.name + "</h2> \
-                         		</div> \
-                     			</li>";
+				var item = data[i];
+			     	var iconId = item.path;
 
-		     	$(".listview").append(innerHTML);
+				var innerHTML = " \
+					<li href=\"" + item.path + "\" id=innerItem" + String(i) + " class= bg-color-blueDark fg-color-white> \
+						<div class='icon' id=\"" + iconId + "\"> \
+							<img isThumbTried='no' id=innerItemImage" + String(i) + " src='images/video128.png' /> \
+						</div> \
+						<div class='data' id=\"" + item.path + "\"> \
+							<h2 class='fg-color-white'>" + item.name + "</h2> \
+						</div> \
+					</li>";
 
-		     	//Add New Click Event
-		     	$("#innerItem" + i).live("click", __bind( function(event){
-	     			this.onMouseClickList(event);
-	     		}, this));
+			     	$(".listview").append(innerHTML);
 
-	     		//Add New onLoadImage Event
-		     	$("#innerItemImage" + i).load( __bind( function(event){
-	     			this.onLoadItemImage(event);
-	     		}, this));
+			     	//Add New Click Event
+			     	$("#innerItem" + i).live("click", __bind( function(event){
+		     			this.onMouseClickList(event);
+		     		}, this));
+
+		     		//Add New onLoadImage Event
+			     	$("#innerItemImage" + i).load( __bind( function(event){
+		     			this.onLoadItemImage(event);
+		     		}, this));
 			}
 		};
 

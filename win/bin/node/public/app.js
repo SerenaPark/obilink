@@ -8,7 +8,7 @@ var confxmlPath = __dirname + "/../../conf.xml";
 var videoFileExt = [".avi", ".mp4"];
 var audioFileExt = [".mp3"];
 var virtualDirectoryVideo = "__vd__video";
-var videoCacheDir = "tmp-cache";
+var videoCacheDir = "cache/video";
 
 app.configure( function(){
   app.use(express.bodyParser());
@@ -207,53 +207,60 @@ app.post('/getVideoThumbnail', function(req, res){
 
 			// make sure you set the correct path to your video file storage
 			var pathToMovie = __dirname + reqVideoPath;
-			
-			var proc = new ffmpeg({
-				source: pathToMovie,  // input source, required
-				timeout: 300*60, // timout of the spawned ffmpeg sub-processes in seconds (optional, defaults to 30)
-				priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
-				logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
-				nolog: false        // completely disable logging (optional, defaults to false)
-			})
-			.withSize('128x128')
-			// take 2 screenshots at predefined timemarks
-			//.takeScreenshots({ count: 2, timemarks: [ '50%', '75%' ], filename: '%f' }, thumnailPath, function(error, filenames) {
-			//.takeScreenshots({ count: 2, timemarks: [ '0.5', '1.0' ], filename: '%f' }, thumnailPath, function(error, filenames) {
 
-			// take 1 screenshots at predefined timemarks
-			.takeScreenshots({ count: 1, timemarks: [ '1.0' ], filename: '%f' }, thumnailPath, function(error, filenames) {
-				console.log("----Start-Msg-------------------------------------");
-				if(error) {
-					console.log("Error-Msg: " + error);
-				}
-				else {
-					console.log("Screenshots: "+filenames+" was saved.");
-				}
-				console.log("----End-Msg---------------------------------------");
-				if(filenames) {
-					var thumbNailData = fs.createReadStream(thumnailFile, {flags: 'r', encoding: 'base64', bufferSize: 8192 });
-					thumbNailData.on('data', function(d) {
-						//YOHO:Error - Do not read and append small buffer data. Currently it makes data length error.
-						//I don't know why, maybe nodejs fs module bugs!!!. If you avoid this problem,
-						//keep bufferSize 2-times larger than jpg file size to read all data of a thumbnail file at a time.
-						//base64 encoded size: if original data is 55 bytes, the encoded size is (55/3) * 4 = 19 * 4 = 76 bytes.
-						//about 30% increasing.
-						item.picture = item.picture + d;
-					});
-					thumbNailData.on('error', function(e) {
-						item.picture = "";
-					});
-					thumbNailData.on('close', function() {
+			//check a requested video file.
+			if(fs.existsSync(pathToMovie)) {
+				var proc = new ffmpeg({
+					source: pathToMovie,  // input source, required
+					timeout: 300*60, // timout of the spawned ffmpeg sub-processes in seconds (optional, defaults to 30)
+					priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
+					logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
+					nolog: false        // completely disable logging (optional, defaults to false)
+				})
+				.withSize('128x128')
+				// take 2 screenshots at predefined timemarks
+				//.takeScreenshots({ count: 2, timemarks: [ '50%', '75%' ], filename: '%f' }, thumnailPath, function(error, filenames) {
+				//.takeScreenshots({ count: 2, timemarks: [ '0.5', '1.0' ], filename: '%f' }, thumnailPath, function(error, filenames) {
+
+				// take 1 screenshots at predefined timemarks
+				.takeScreenshots({ count: 1, timemarks: [ '1.0' ], filename: '%f' }, thumnailPath, function(error, filenames) {
+					console.log("----Start-Msg-------------------------------------");
+					if(error) {
+						console.log("Error-Msg: " + error);
+					}
+					else {
+						console.log("Screenshots: "+filenames+" was saved.");
+					}
+					console.log("----End-Msg---------------------------------------");
+					if(filenames) {
+						var thumbNailData = fs.createReadStream(thumnailFile, {flags: 'r', encoding: 'base64', bufferSize: 8192 });
+						thumbNailData.on('data', function(d) {
+							//YOHO:Error - Do not read and append small buffer data. Currently it makes data length error.
+							//I don't know why, maybe nodejs fs module bugs!!!. If you avoid this problem,
+							//keep bufferSize 2-times larger than jpg file size to read all data of a thumbnail file at a time.
+							//base64 encoded size: if original data is 55 bytes, the encoded size is (55/3) * 4 = 19 * 4 = 76 bytes.
+							//about 30% increasing.
+							item.picture = item.picture + d;
+						});
+						thumbNailData.on('error', function(e) {
+							item.picture = "";
+						});
+						thumbNailData.on('close', function() {
+							res.end(JSON.stringify(item));
+							console.log("Screenshots: "+filenames+" was replied.");
+							//fs.unlinkSync(thumnailFile);
+							//console.log("Screenshots: "+filenames+" was deleted after using.");
+						});
+					}
+					else {
 						res.end(JSON.stringify(item));
-						console.log("Screenshots: "+filenames+" was replied.");
-						//fs.unlinkSync(thumnailFile);
-						//console.log("Screenshots: "+filenames+" was deleted after using.");
-					});
-				}
-				else {
-					res.end(JSON.stringify(item));
-				}
-			});
+					}
+				});
+			}
+			else {
+				res.end(JSON.stringify(item));
+				console.log("Screenshots: there is no viedo file at " + pathToMovie);
+			}
 		}
 	}
 });
@@ -326,32 +333,40 @@ app.get('/getDropboxList', function(req,res){
 });
 
 app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
-	res.contentType('m3u8');
 	// make sure you set the correct path to your video file storage
 	var pathToMovie = __dirname + '/contents/' + req.params[0];
-	var proc = new ffmpeg({
-		source: pathToMovie,  // input source, required
-		timeout: 300*60, // timout of the spawned ffmpeg sub-processes in seconds (optional, defaults to 30)
-		priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
-		logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
-		nolog: false        // completely disable logging (optional, defaults to false)
-	})
-	.toFormat('mpegts')
-	.withVideoBitrate('480k')
-	.withVideoCodec('libx264')
-	.withSize('480x320')
-	.withAudioBitrate('128k')
-	.withAudioCodec('libmp3lame')
-	.addOptions(['-bt 200k', '-subq 7', '-me_range 16', '-qcomp 0.6', '-qmin 10', '-qmax 51'])
-	// save to stream
-	.writeToStream(res, function(retcode, error){
-		console.log("----Start-Msg-------------------------------------");
-		if(error) {
-			//console.log("Error-Msg: " + error);
-		}
-		console.log("Video-File: " + req.params[0] + " has been converted succesfully.");
-		console.log("----End-Msg---------------------------------------");
-	});
+
+	//check a requested video file.
+	if(fs.existsSync(pathToMovie)) {
+		res.contentType('m3u8');
+		var proc = new ffmpeg({
+			source: pathToMovie,  // input source, required
+			timeout: 300*60, // timout of the spawned ffmpeg sub-processes in seconds (optional, defaults to 30)
+			priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
+			logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
+			nolog: false        // completely disable logging (optional, defaults to false)
+		})
+		.toFormat('mpegts')
+		.withVideoBitrate('480k')
+		.withVideoCodec('libx264')
+		.withSize('480x320')
+		.withAudioBitrate('128k')
+		.withAudioCodec('libmp3lame')
+		.addOptions(['-bt 200k', '-subq 7', '-me_range 16', '-qcomp 0.6', '-qmin 10', '-qmax 51'])
+		// save to stream
+		.writeToStream(res, function(retcode, error){
+			console.log("----Start-Msg-------------------------------------");
+			if(error) {
+				//console.log("Error-Msg: " + error);
+			}
+			console.log("Video-File: " + req.params[0] + " has been converted succesfully.");
+			console.log("----End-Msg---------------------------------------");
+		});
+	}
+	else {
+		res.send(404, 'Sorry, your video list may be out-of-date. reload the video list and then use it.');
+		console.log("Video-File: there is no file at " + pathToMovie);
+	}
 });
 
 console.log('Make the audio metadata db...');
