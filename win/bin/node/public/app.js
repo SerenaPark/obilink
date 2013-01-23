@@ -177,12 +177,11 @@ app.post('/getVideoThumbnail', function(req, res){
 
 	if(tmpPath) {
 		var reqVideoPath = "/contents" + tmpPath.substring(tmpPath.indexOf(virtualDirectoryVideo)+virtualDirectoryVideo.length);
-		reqVideoPath = reqVideoPath.replace(/\//g, '\\');  //same-code: reqVideoPath = reqVideoPath.split("/").join("\\");
-
-		//check a previous thumbnail file.
-		var thumnailFile = __dirname + "\\" + videoCacheDir + reqVideoPath + ".jpg";
+		var thumnailFile = __dirname + "/" + videoCacheDir + reqVideoPath + ".jpg";
+		thumnailFile = thumnailFile.replace(/\//g, '\\');  //same-code: thumnailFile = thumnailFile.split("/").join("\\");
 		var thumnailPath = thumnailFile.substring(0, thumnailFile.lastIndexOf('\\'));
 
+		//check a previous thumbnail file.
 		if(fs.existsSync(thumnailFile)) {
 			var thumbNailData = fs.createReadStream(thumnailFile, {flags: 'r', encoding: 'base64', bufferSize: 8192 });
 			thumbNailData.on('data', function(d) {
@@ -207,6 +206,7 @@ app.post('/getVideoThumbnail', function(req, res){
 
 			// make sure you set the correct path to your video file storage
 			var pathToMovie = __dirname + reqVideoPath;
+			pathToMovie = pathToMovie.replace(/\//g, '\\');
 
 			//check a requested video file.
 			if(fs.existsSync(pathToMovie)) {
@@ -226,7 +226,7 @@ app.post('/getVideoThumbnail', function(req, res){
 				.takeScreenshots({ count: 1, timemarks: [ '1.0' ], filename: '%f' }, thumnailPath, function(error, filenames) {
 					console.log("----Start-Msg-------------------------------------");
 					if(error) {
-						console.log("Error-Msg: " + error);
+						console.log("Screenshots: " + error);
 					}
 					else {
 						console.log("Screenshots: "+filenames+" was saved.");
@@ -335,6 +335,7 @@ app.get('/getDropboxList', function(req,res){
 app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 	// make sure you set the correct path to your video file storage
 	var pathToMovie = __dirname + '/contents/' + req.params[0];
+	pathToMovie = pathToMovie.replace(/\//g, '\\');
 
 	//check a requested video file.
 	if(fs.existsSync(pathToMovie)) {
@@ -357,7 +358,7 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 		.writeToStream(res, function(retcode, error){
 			console.log("----Start-Msg-------------------------------------");
 			if(error) {
-				//console.log("Error-Msg: " + error);
+				//console.log("Video-File: " + error);
 			}
 			console.log("Video-File: " + req.params[0] + " has been converted succesfully.");
 			console.log("----End-Msg---------------------------------------");
