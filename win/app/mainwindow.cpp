@@ -1,18 +1,15 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "xmlManager.h"
-#include "shareDir.h"
 #include <QtNetwork/QNetworkInterface>
 #include <QFileDialog>
-#include <QProcess>
 
 /* File     : mainwindow.cpp
- * Author   : Edgar Seo
+ * Author   : Edgar Seo, Ted Kim
  * Company  : OBIGO KOREA
- * Version  : 1.1.0
- * Date     : 2013-01-22
+ * Version  : 2.0.1
+ * Date     : 2013-01-28
  */
-
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -20,20 +17,14 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // disable cursor at border of window
+    // fix window size & disable cursor at border of window
     Qt::WindowFlags flags = Qt::Window | Qt::MSWindowsFixedSizeDialogHint;
     setWindowFlags(flags);
-
     setFixedSize(358, 544);
-
-    connect(ui->btn_add, SIGNAL(clicked()), this, SLOT(insertSharedDir()));
-    connect(ui->btn_remove, SIGNAL(clicked()), this, SLOT(removeSharedDir()));
-    connect(ui->btn_startshare, SIGNAL(clicked()), this, SLOT(startShare()));
-    connect(ui->btn_stopshare, SIGNAL(clicked()), this, SLOT(stopShare()));
-    connect(ui->cb_dropbox, SIGNAL(clicked()), this, SLOT(shareDropbox()));
 
     initialize();
 }
+
 
 MainWindow::~MainWindow()
 {
@@ -41,19 +32,20 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+
 void MainWindow::initialize()
 {
-    ShareDir sharedir;
-
     CXmlManager::instance()->loadXML();
 
-    ui->cb_dropbox->setChecked(sharedir.isSharedDropbox());
+    ui->cb_dropbox->setChecked(CXmlManager::instance()->isDropboxShareMode());
     ui->btn_stopshare->setEnabled(false);
+
     updateShareAddress();
     updateListwidget();
 
     return;
 }
+
 
 void MainWindow::updateShareAddress()
 {
@@ -65,14 +57,14 @@ void MainWindow::updateShareAddress()
     return;
 }
 
+
 void MainWindow::updateListwidget()
 {
-    ShareDir sharedir;
-    ui->listWidget->clear();
+    if ( ui->listWidget == NULL || ui == NULL)
+        return;
 
-    for (int i = 0; i < sharedir.getLocalShareDirList().size(); i++) {
-        new QListWidgetItem(sharedir.getLocalShareDirList()[i], ui->listWidget);
-    }
+    ui->listWidget->clear();
+    ui->listWidget->addItems(CXmlManager::instance()->getLocalShareDirList());
 
     return;
 }
@@ -87,85 +79,86 @@ void MainWindow::displayShareAddress(QString addr)
 void MainWindow::displayQRCode(QString addr)
 {
     QDir dir;
+    QString command = "\"" + dir.currentPath() + "\\extbin\\qrcode.exe\"";
+    QString arg1 = "\"" + dir.currentPath() + "\\extbin\\qrcodepic.png\"";
+    QString qrcodePath = dir.currentPath() + "\\extbin\\qrcodepic.png";
 
-    QProcess::execute(dir.currentPath() + "\\extbin\\qrcode -o " + dir.currentPath() + "\\extbin\\qrcodepic.png -s 5 -l H " + addr);
-    ui->lb_qrcode->setPixmap(QPixmap::QPixmap(dir.currentPath() + "\\extbin\\qrcodepic.png").scaled(100, 100, Qt::KeepAspectRatio));
+    QProcess::execute(command + " -o " + arg1 + " -s 5 -l H " + addr);
+    ui->lb_qrcode->setPixmap(QPixmap::QPixmap(qrcodePath).scaled(100, 100, Qt::KeepAspectRatio));
 
     return;
 }
-
 
 
 QString MainWindow::getIPAddress()
 {
-    QList<QHostAddress> ipList = QNetworkInterface::allAddresses();
+    QDir dir;
+    QProcess proc;
+    QString serverIPAddress;
+    QString command = "\"" + dir.currentPath() + "\\node\\node.exe\"";
+    QString arg1 = "\"" + dir.currentPath() + "\\node\\serverip\\serverip.js\"";
 
-    for (int i = 0; i != ipList.size(); i++) {
-        // Filter for IPv4 Type Address without local loop address(127.0.0.1)
-        if (ipList.at(i) != QHostAddress::LocalHost && ipList.at(i).toIPv4Address()) {
-            if (ipList.at(i).toString() != NULL) {
-                return "http://" + ipList.at(i).toString() + ":8080";
-            }
-        }
-    }
-    return "Not available";
+    proc.start(command + " " + arg1);
+    proc.waitForFinished();
+
+    serverIPAddress = proc.readAllStandardOutput();
+    serverIPAddress = serverIPAddress.remove(serverIPAddress.length() - 1, 1);
+
+    return "http://" + serverIPAddress + ":8888";
 }
 
-void MainWindow::insertSharedDir()
+
+void MainWindow::on_btn_add_clicked()
 {
-    ShareDir sharedir;
-    QString currentDir = QFileDialog::getExistingDirectory();
+    QString dir = QFileDialog::getExistingDirectory();
 
-    if (currentDir != NULL && !sharedir.isDuplicated(currentDir)) {
-        sharedir.appendShareDir(currentDir);
-    }
+    if (dir.length() <= 0)
+        return;
 
+    CXmlManager::instance()->appendShareDir(dir);
     CXmlManager::instance()->saveXML();
-    updateListwidget();
 
+    updateListwidget();
     return;
 }
 
-void MainWindow::removeSharedDir()
+void MainWindow::on_btn_remove_clicked()
 {
-    // FIXME. this function remove first element, if no one selected when clicked.
+    // FIXME. get incorrect row when clicked with no one selected
+    if ( ui->listWidget == NULL || ui == NULL)
+        return;
+
     int row = ui->listWidget->currentRow();
 
-    if ( row < 0) {
+    if (row < 0) {
         return;
     }
 
-    ShareDir sharedir;
-    sharedir.removeShareDir(row);
-
+    CXmlManager::instance()->removeShareDir(row);
     CXmlManager::instance()->saveXML();
-    updateListwidget();
 
+    updateListwidget();
     return;
 }
 
-void MainWindow::startShare()
+void MainWindow::on_btn_startshare_clicked()
 {
-    //FIXME. add exception for not exist of Node.js server
     QDir dir;
+    QString command = "\"" + dir.currentPath() + "\\node\\node.exe\"";
+    QString arg1 = "\"" + dir.currentPath() + "\\node\\public\\app.js\"";
 
     if (ui->btn_startshare->isEnabled() == true) {
         ui->btn_startshare->setEnabled(false);
         ui->btn_stopshare->setEnabled(true);
     }
 
-    ui->btn_startshare->setEnabled(false);
+    m_serverProc.setStandardErrorFile(dir.currentPath() + "\\error.log");
+    m_serverProc.start(command + " " + arg1);
 
-    m_serverProc.setWorkingDirectory(dir.currentPath() + "\\node");
-    m_serverProc.setStandardErrorFile(dir.currentPath() + "\\error.txt");
-
-    m_serverProc.start(dir.currentPath() + "\\node\\node.exe " + dir.currentPath() + "\\node\\public\\app.js");
-
-    qDebug() << m_serverProc.state();
     return;
 }
 
-void MainWindow::stopShare()
+void MainWindow::on_btn_stopshare_clicked()
 {
     if (ui->btn_stopshare->isEnabled() == true) {
         ui->btn_startshare->setEnabled(true);
@@ -176,16 +169,12 @@ void MainWindow::stopShare()
     return;
 }
 
-void MainWindow::shareDropbox()
+void MainWindow::on_cb_dropbox_clicked()
 {
-    ShareDir shareDir;
-    shareDir.updateDropbox(ui->cb_dropbox->checkState());
+    if (ui->cb_dropbox == NULL || ui == NULL)
+        return;
 
+    CXmlManager::instance()->updateDropbox(ui->cb_dropbox->checkState());
     return;
+
 }
-
-
-
-
-
-

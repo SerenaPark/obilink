@@ -7,8 +7,8 @@
 /* File     : mainwindow.h
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 1.0.1
- * Date     : 2013-01-22
+ * Version  : 2.0
+ * Date     : 2013-01-25
  */
 
 namespace Ui {
@@ -36,12 +36,12 @@ private:
     void displayQRCode(QString addr);                           // display server QR code of IP address on UI
     QString getIPAddress();                                     // get server IP address
 
-public slots:
-    void insertSharedDir();                                     // trigger with PushButton(btn_plus)
-    void removeSharedDir();                                     // trigger with PushButton(btn_minus)
-    void startShare();                                          // trigger with PushButton(btn_startShare)
-    void stopShare();                                           // trigger with PushButton(btn_stopShare)
-    void shareDropbox();                                        // trigger with CheckBox(cb_dropbox)
+private slots:
+    void on_btn_add_clicked();                                  // trigger with PushButton(btn_plus)
+    void on_btn_remove_clicked();                               // trigger with PushButton(btn_minus)
+    void on_btn_startshare_clicked();                           // trigger with PushButton(btn_startShare)
+    void on_btn_stopshare_clicked();                            // trigger with PushButton(btn_stopShare)
+    void on_cb_dropbox_clicked();                               // trigger with CheckBox(cb_dropbox)
 };
 
 #endif // MAINWINDOW_H
