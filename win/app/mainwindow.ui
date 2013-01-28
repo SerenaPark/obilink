@@ -47,7 +47,7 @@
      <string>http://192.168.0.1</string>
     </property>
    </widget>
-   <widget class="QListWidget" name="listWidget">
+   <widget class="DropListWidget" name="listWidget">
     <property name="geometry">
      <rect>
       <x>18</x>
@@ -77,19 +77,6 @@
     </property>
     <property name="text">
      <string/>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_add">
-    <property name="geometry">
-     <rect>
-      <x>188</x>
-      <y>498</y>
-      <width>75</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>폴더추가</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_remove">
@@ -176,10 +163,30 @@
      <string/>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_add">
+    <property name="geometry">
+     <rect>
+      <x>188</x>
+      <y>498</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>폴더추가</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>DropListWidget</class>
+   <extends>QListWidget</extends>
+   <header>droplistwidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

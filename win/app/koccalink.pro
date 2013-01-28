@@ -16,18 +16,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     xmlManager.cpp \
-    shareDir.cpp
+    droplistwidget.cpp
 
 HEADERS  += mainwindow.h \
     xmlManager.h \
-    shareDir.h
+    droplistwidget.h
 
 FORMS    += mainwindow.ui
 
 RESOURCES += \
     Resource.qrc
-
-win32 {
-CONFIG += embed_manifest_exe
-QMAKE_LFLAGS_WINDOWS += /MANIFESTUAC:level=\'requireAdministrator\'
-}
