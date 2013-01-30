@@ -3,12 +3,13 @@
 #include "xmlManager.h"
 #include <QtNetwork/QNetworkInterface>
 #include <QFileDialog>
+#include <QMessageBox>
 
 /* File     : mainwindow.cpp
  * Author   : Edgar Seo, Ted Kim
  * Company  : OBIGO KOREA
- * Version  : 2.0.1
- * Date     : 2013-01-28
+ * Version  : 2.0.2
+ * Date     : 2013-01-30
  */
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -16,6 +17,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    connect(&m_serverProc, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int, QProcess::ExitStatus)));
 
     // fix window size & disable cursor at border of window
     Qt::WindowFlags flags = Qt::Window | Qt::MSWindowsFixedSizeDialogHint;
@@ -110,7 +113,16 @@ QString MainWindow::getIPAddress()
 
 void MainWindow::on_btn_add_clicked()
 {
-    QString dir = QFileDialog::getExistingDirectory();
+    //QFileDialog::DontUseNativeDialog | QFileDialog::ReadOnly
+    //| QFileDialog::ShowDirsOnly
+
+    QDir dirlist;
+    QString dir = QFileDialog::getExistingDirectory(this,
+                        tr("Choose Share Directory"),
+                        "/",
+                        QFileDialog::DontResolveSymlinks
+                        | QFileDialog::ReadOnly);
+
 
     if (dir.length() <= 0)
         return;
@@ -147,6 +159,8 @@ void MainWindow::on_btn_startshare_clicked()
     QString command = "\"" + dir.currentPath() + "\\node\\node.exe\"";
     QString arg1 = "\"" + dir.currentPath() + "\\node\\public\\app.js\"";
 
+
+
     if (ui->btn_startshare->isEnabled() == true) {
         ui->btn_startshare->setEnabled(false);
         ui->btn_stopshare->setEnabled(true);
@@ -165,7 +179,9 @@ void MainWindow::on_btn_stopshare_clicked()
         ui->btn_stopshare->setEnabled(false);
     }
 
-    m_serverProc.kill();
+    m_serverProc.kill();      // return CrashExit
+    //m_serverProc.close();       // return CrashExit
+    //m_serverProc.terminate();
     return;
 }
 
@@ -177,4 +193,18 @@ void MainWindow::on_cb_dropbox_clicked()
     CXmlManager::instance()->updateDropbox(ui->cb_dropbox->checkState());
     return;
 
+}
+
+void MainWindow::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    if (ui->btn_stopshare->isEnabled()) {
+        ui->btn_startshare->setEnabled(true);
+        ui->btn_stopshare->setEnabled(false);
+    }
+
+    if (exitStatus == QProcess::NormalExit) {
+        qDebug() << "Node.js is exited normally" << endl;
+    } else if (exitStatus == QProcess::CrashExit) {
+        qDebug() << "Node.js is exited abnormally" << endl;
+    }
 }

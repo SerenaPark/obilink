@@ -7,13 +7,15 @@
 #include <QDir>
 #include <QDebug>
 #include <Windows.h>
+#include <QTextCodec>
+#include <QByteArray>
 
 
 /* File     : xmlManager.cpp
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0.1
- * Date     : 2013-01-28
+ * Version  : 2.0.2
+ * Date     : 2013-01-30
  */
 
 CXmlManager* CXmlManager::m_instance = NULL;
@@ -164,13 +166,19 @@ QString CXmlManager::makeSymbolicPath(const QString originPath)
 
 QString CXmlManager::makeSymbolicPath(QString originPath, const QString symbolicRelativePath)
 {
-    // FIXME. 심볼릭 디렉토리 경로 중 존재하지 않는 디렉토리가 있으면 함께 생성하는 것이 필요함.
     QDir dir;
     QString symbolicAbsolutePath = getSymbolicAbsoultePath(symbolicRelativePath);
 
     QString command = "\"" + dir.currentPath().replace("/", "\\") + "\\extbin\\ln.exe\"";
     QString arg1 = "\"" + originPath.replace("/", "\\") + "\"";
-    QString arg2 = "\"" + symbolicAbsolutePath + "\"";
+    QString arg2 = "\"" + symbolicAbsolutePath + "\"";  //C:\TEST\node\public\content\sample
+
+    if (!QDir("\"" + dir.currentPath().replace("/", "\\") + "\\node\\public\"").exists()) {
+        QDir().mkdir("node\\public");
+        QDir().mkdir("node\\public\\contents");
+    } else if (!QDir("\"" + dir.currentPath().replace("/", "\\") + "\\node\\public\\contents\"").exists()) {
+        QDir().mkdir("node\\public\\contents");
+    }
 
     m_lnProc.start(command + " " + arg1 + " " + arg2);
 
@@ -212,7 +220,6 @@ bool CXmlManager::removeShareDir(int row)
 bool CXmlManager::removeShareDir(QString SymbolicRelativePath)
 {
     QString symbolicAbsolutePath = getSymbolicAbsoultePath(SymbolicRelativePath);
-
     return DeleteJunctionPoint((char*)symbolicAbsolutePath.toStdString().c_str());
 }
 
