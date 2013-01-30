@@ -365,53 +365,50 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 		}
 	}
 
-	if(fs.existsSync(outputFile)) {
-		if(androidStringIndex != -1) {
-			res.redirect(virtualRedirectAndroid+'/'+tsFile);
+	//check a requested video file.
+	if(fs.existsSync(pathToMovie)) {
+		if(fs.existsSync(outputFile)) {
+			if(androidStringIndex != -1) {
+				res.redirect(virtualRedirectAndroid+'/'+tsFile);
+			}
+			else {
+				res.redirect(virtualRedirectNormal+'/'+tsFile+'.m3u8');
+			}
 		}
 		else {
-			res.redirect(virtualRedirectNormal+'/'+tsFile+'.m3u8');
-		}
-	}
-	else {
-		// check if the requested file is being prepared or was prepared.
-		if(fs.existsSync(outputFile+'.preparing')) {
-			// watch if outputFile is created. and then this request is redirected.
-			fs.watchFile(outputFile, function (curr, prev) {
-				console.log("Video-File: "+tsFile+' is preparing.');
-				fs.unwatchFile(outputFile);
+			// check if the requested file is being prepared or was prepared.
+			if(fs.existsSync(outputFile+'.preparing')) {
+				console.log("Video-File: "+tsFile+' is already preparing.');
 				if(androidStringIndex != -1) {
 					res.redirect(virtualRedirectAndroid+'/'+tsFile);
 				}
 				else {
 					res.redirect(virtualRedirectNormal+'/'+tsFile+'.m3u8');
 				}
-			});
-		}
-		else {
-			// from now, even though this request is disconnected or being disconnected
-			// the server application(app.js) will keep to covert for next other client requests.
+			}
+			else {
+				// from now, even though this request is disconnected or being disconnected
+				// the server application(app.js) will keep to covert for next other client requests.
 
-			// make a directory for output files.
-			fs.mkdirRecursiveSync(outputPath);
+				// make a directory for output files.
+				fs.mkdirRecursiveSync(outputPath);
 
-			// touch *.preparing file to mark that the requested file is being prepared or was prepared.
-			fs.closeSync(fs.openSync(outputFile+'.preparing', 'a'));
-
-			// watch if outputFile is created. and then this request is redirected.
-			fs.watchFile(outputFile, function (curr, prev) {
+				// touch *.preparing file to mark that the requested file is being prepared or was prepared.
+				fs.closeSync(fs.openSync(outputFile+'.preparing', 'a'));
 				console.log("Video-File: "+tsFile+' is preparing.');
-				fs.unwatchFile(outputFile);
-				if(androidStringIndex != -1) {
-					res.redirect(virtualRedirectAndroid+'/'+tsFile);
-				}
-				else {
-					res.redirect(virtualRedirectNormal+'/'+tsFile+'.m3u8');
-				}
-			});
 
-			//check a requested video file.
-			if(fs.existsSync(pathToMovie)) {
+				// watch if outputFile is created. and then this request is redirected.
+				fs.watchFile(outputFile, function (curr, prev) {
+					console.log("Video-File: "+tsFile+' is preparing.');
+					fs.unwatchFile(outputFile);
+					if(androidStringIndex != -1) {
+						res.redirect(virtualRedirectAndroid+'/'+tsFile);
+					}
+					else {
+						res.redirect(virtualRedirectNormal+'/'+tsFile+'.m3u8');
+					}
+				});
+
 				//res.contentType('m3u8');	//res.contentType('mp4');
 				var proc = new ffmpeg({
 					source: pathToMovie,  // input source, required
@@ -438,33 +435,52 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 					console.log("Video-File: " + req.params[0] + " has been converted succesfully.");
 				});
 			}
-			else {
-				res.send(404, 'Sorry, your video list may be out-of-date.<br/>Reload the video list and then use it.');
-				console.log("Video-File: there is no file at " + pathToMovie);
-			}
 		}
 	}
+	else {
+		res.send(404, 'Sorry, your video list may be out-of-date.<br/>Reload the video list and then use it.');
+		console.log("Video-File: there is no file at " + pathToMovie);
+	}
 });
+
+function videoWriteToStream(req, res, requestedFile) {
+	var proc = new ffmpeg({
+		source: requestedFile, timeout: 300*60, priority: 0, logger: null, nolog: false
+	})
+	.addOptions(['-vcodec copy','-acodec copy','-f mpegts'])
+	// save to stream
+	.writeToStream(res, function(retcode, error){
+		if(error) {
+			console.log("Video-File(A): " + error);
+		}
+		console.log("Video-File(A): " + req.params[0] + " has been converted succesfully.");
+	});
+}
 
 app.get("/"+virtualRedirectAndroid+"/*", function(req, res) {
 	var tsFile = req.params[0];
 	var requestedFile = __dirname + '/' + tsFile;
 	requestedFile = requestedFile.replace(/\//g, '\\');
 
-	//check a requested video file.
-	if(fs.existsSync(requestedFile)) {
-		res.contentType('m3u8');
-		var proc = new ffmpeg({
-			source: requestedFile, timeout: 300*60, priority: 0, logger: null, nolog: false
-		})
-		.addOptions(['-vcodec copy','-acodec copy','-f mpegts'])
-		// save to stream
-		.writeToStream(res, function(retcode, error){
-			if(error) {
-				console.log("Video-File(A): " + error);
-			}
-			console.log("Video-File(A): " + req.params[0] + " has been converted succesfully.");
-		});
+	var pathToMovie = tsFile.substring(tsFile.lastIndexOf(cacheDirectoryVideo)+cacheDirectoryVideo.length, tsFile.lastIndexOf('.'));
+	pathToMovie = __dirname + pathToMovie;
+	pathToMovie = pathToMovie.replace(/\//g, '\\');
+
+	//check a original file in video list to avoid using out-of-date video list.
+	if(fs.existsSync(pathToMovie)) {
+		//check a requested video file.
+		if(fs.existsSync(requestedFile)) {
+			res.contentType('m3u8');
+			videoWriteToStream(req, res, requestedFile);
+		}
+		else {
+			// watch if requestedFile is created.
+			fs.watchFile(requestedFile, function (curr, prev) {
+				fs.unwatchFile(requestedFile);
+				res.contentType('m3u8');
+				videoWriteToStream(req, res, requestedFile);
+			});
+		}
 	}
 	else {
 		res.send(404, 'Sorry, your video list may be out-of-date.<br/>Reload the video list and then use it.');
@@ -473,12 +489,36 @@ app.get("/"+virtualRedirectAndroid+"/*", function(req, res) {
 });
 
 app.get("/"+virtualRedirectNormal+"/*", function(req, res) {
-	var requestedFile = req.params[0];
-	var tsFile = requestedFile.substring(0, requestedFile.lastIndexOf('.'));
+	var m3u8File = req.params[0];
+	var tsFile = m3u8File.substring(0, m3u8File.lastIndexOf('.'));
+	var requestedFile = __dirname + '/' + tsFile;
+	requestedFile = requestedFile.replace(/\//g, '\\');
 	//var m3u8File = "#EXTM3U\r\n#EXT-X-TARGETDURATION:18000\r\n#EXTINF:18000,\r\n"+"http://"+req.headers.host+"/"+tsFile+"\r\n#EXT-X-ENDLIST\r\n";
-	var m3u8File = "#EXTM3U\r\n#EXTINF:18000,\r\n"+"http://"+req.headers.host+"/"+tsFile+"\r\n";
-	res.contentType('m3u8');
-	res.send(m3u8File);
+	var m3u8FileString = "#EXTM3U\r\n#EXTINF:18000,\r\n"+"http://"+req.headers.host+"/"+tsFile+"\r\n";
+
+	var pathToMovie = tsFile.substring(tsFile.lastIndexOf(cacheDirectoryVideo)+cacheDirectoryVideo.length, tsFile.lastIndexOf('.'));
+	pathToMovie = __dirname + pathToMovie;
+	pathToMovie = pathToMovie.replace(/\//g, '\\');
+
+	//check a original file in video list to avoid using out-of-date video list.
+	if(fs.existsSync(pathToMovie)) {
+		if(fs.existsSync(requestedFile)) {
+			res.contentType('m3u8');
+			res.send(m3u8FileString);
+		}
+		else {
+			// watch if requestedFile is created.
+			fs.watchFile(requestedFile, function (curr, prev) {
+				fs.unwatchFile(requestedFile);
+				res.contentType('m3u8');
+				res.send(m3u8FileString);
+			});
+		}
+	}
+	else {
+		res.send(404, 'Sorry, your video list may be out-of-date.<br/>Reload the video list and then use it.');
+		console.log("Video-File(N): there is no file at " + requestedFile);
+	}
 });
 
 console.log('Make the audio metadata db...');
