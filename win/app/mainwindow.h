@@ -42,6 +42,7 @@ private slots:
     void on_btn_startshare_clicked();                           // trigger with PushButton(btn_startShare)
     void on_btn_stopshare_clicked();                            // trigger with PushButton(btn_stopShare)
     void on_cb_dropbox_clicked();                               // trigger with CheckBox(cb_dropbox)
+    void processFinished(int, QProcess::ExitStatus);
 };
 
 #endif // MAINWINDOW_H
