@@ -3,7 +3,6 @@
 #include "xmlManager.h"
 #include <QtNetwork/QNetworkInterface>
 #include <QFileDialog>
-#include <QMessageBox>
 
 /* File     : mainwindow.cpp
  * Author   : Edgar Seo, Ted Kim

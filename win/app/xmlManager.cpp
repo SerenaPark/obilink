@@ -7,9 +7,6 @@
 #include <QDir>
 #include <QDebug>
 #include <Windows.h>
-#include <QTextCodec>
-#include <QByteArray>
-
 
 /* File     : xmlManager.cpp
  * Author   : Edgar Seo
