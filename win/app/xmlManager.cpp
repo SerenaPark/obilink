@@ -11,8 +11,8 @@
 /* File     : xmlManager.cpp
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0.2
- * Date     : 2013-01-30
+ * Version  : 2.0.3
+ * Date     : 2013-02-07
  */
 
 CXmlManager* CXmlManager::m_instance = NULL;
@@ -168,7 +168,7 @@ QString CXmlManager::makeSymbolicPath(QString originPath, const QString symbolic
 
     QString command = "\"" + dir.currentPath().replace("/", "\\") + "\\extbin\\ln.exe\"";
     QString arg1 = "\"" + originPath.replace("/", "\\") + "\"";
-    QString arg2 = "\"" + symbolicAbsolutePath + "\"";  //C:\TEST\node\public\content\sample
+    QString arg2 = "\"" + symbolicAbsolutePath + "\"";
 
     if (!QDir("\"" + dir.currentPath().replace("/", "\\") + "\\node\\public\"").exists()) {
         QDir().mkdir("node\\public");
@@ -214,10 +214,19 @@ bool CXmlManager::removeShareDir(int row)
     return removeShareDir(symblicRelativePath);
 }
 
-bool CXmlManager::removeShareDir(QString SymbolicRelativePath)
+bool CXmlManager::removeShareDir(QString symbolicRelativePath)
 {
-    QString symbolicAbsolutePath = getSymbolicAbsoultePath(SymbolicRelativePath);
-    return DeleteJunctionPoint((char*)symbolicAbsolutePath.toStdString().c_str());
+
+    QDir dir;
+    QString command = "\"" + dir.currentPath().replace("/", "\\") + "\\extbin\\rj.exe\"";
+    QString symbolicAbsolutePath = getSymbolicAbsoultePath(symbolicRelativePath);
+
+    m_rjProc.start(command + " \"" + symbolicAbsolutePath + "\"");
+
+    if(m_rjProc.waitForFinished())
+        dir.rmdir(symbolicAbsolutePath);
+
+    return true;
 }
 
 void CXmlManager::updateDropbox(bool checked)
@@ -242,26 +251,4 @@ QStringList CXmlManager::getLocalShareDirList()
 QStringList CXmlManager::getLocalSymbolicDirList()
 {
     return m_localSymbolicDirList;
-}
-
-bool CXmlManager::DeleteJunctionPoint(char* path)
-{
-    REPARSE_GUID_DATA_BUFFER reparsePoint = {'\0'};
-    reparsePoint.ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
-
-    HANDLE hFile = CreateFileA(path, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, NULL);
-    if (!hFile)
-        return false;
-
-    DWORD returnedBytes;
-    DWORD result = DeviceIoControl(hFile, FSCTL_DELETE_REPARSE_POINT, &reparsePoint, REPARSE_GUID_DATA_BUFFER_HEADER_SIZE, NULL, 0, &returnedBytes, NULL) != 0;
-
-    if (result == 0) {
-        qDebug() << "Failed to issue FSCTL_DELETE_REPARSE_POINT. Last error: 0x" << GetLastError();
-        return false;
-    }
-    CloseHandle(hFile);
-
-    QDir dir;
-    return dir.rmdir(path);
 }
