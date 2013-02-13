@@ -8,8 +8,8 @@
 /* File     : xmlManager.h
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0
- * Date     : 2013-01-25
+ * Version  : 2.0.1
+ * Date     : 2013-02-07
  */
 
 class CXmlManager
@@ -23,12 +23,12 @@ private:
     QString makeSymbolicPath(QString);                      // make symbolic directory
     QString makeSymbolicPath(QString, QString);             // make symbolic directory
     QString getSymbolicAbsoultePath(QString);               // return absolute path of symbolic directory
-    bool DeleteJunctionPoint(char*);                        // remove symbolic directory
 
 private:
     static CXmlManager* m_instance;
     QFile m_sharedDirListFile;                              // conf.xml
     QProcess m_lnProc;                                      // a process to make symbolic directory
+    QProcess m_rjProc;                                      // a process to remove symbolic directory
     QStringList m_localShareDirList;                        // list of share directory path
     QStringList m_localSymbolicDirList;                     // list of symbolic path of share directory
     QString m_dropboxInstalledPath;                         // absolute path of installed dropbox
