@@ -18,6 +18,14 @@
 
 			this.scrollset();
 			this.refreshScroll();
+
+			var clouserVar = this;
+			$(document).ready(function() {
+				var clouserVar2 = clouserVar;
+  				$(window).resize(function(){
+					clouserVar2.refreshScroll();
+				});	
+			});
 		};
 
 		DropboxAudioList.prototype.getDisplayStatus = function(){

@@ -18,7 +18,7 @@
          url('../font/OpenSans-Regular.ttf') format('truetype');
 }
 body,
-#content_music .list li h2 span {font-family:'OpenSans-Regular';}
+#content li h2 span {font-family:'OpenSans-Regular';}
 @font-face {
     font-family: 'OpenSans-Bold';
     src: url('../font/OpenSans-Bold.eot');
@@ -29,9 +29,9 @@ body,
 #music h1,
 #music h2,
 #music h3,
-#footer_music .time_start,
-#footer_music .time_end,
-#content_music .list li span.time {font-family:'OpenSans-Bold';}
+#footer .time_start,
+#footer .time_end,
+#content li span.time {font-family:'OpenSans-Bold';}
 @font-face {
     font-family: 'BebasNeue';
 	src: url('../font/BebasNeue.eot');

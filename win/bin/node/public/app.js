@@ -4,6 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var xml2js = require('xml2js');
 var musicmetadata = require('musicmetadata');
+//var Iconv  = require('iconv').Iconv;
 var confxmlPath = __dirname + "/../../conf.xml";
 var videoFileExt = [".avi", ".mp4"];
 var audioFileExt = [".mp3"];
@@ -75,10 +76,18 @@ function getList(dir, fileTypeExts, type, __vd__NameWithEndSlash){
 				filepath = path.join(__vd__NameWithEndSlash + dir + "/" + items[i]);
 				var extname = path.extname(items[i]);
 				if ( fileTypeExts.indexOf(extname) >= 0 ){
-					rtnItem = { "path": filepath.split("\\").join("/"), 
-								"name": items[i], 
-								"type": type,
-							    "thumb" : getAudioThumbURL(items[i], type) };						
+					if(type == "a"){
+						rtnItem = { "path": filepath.split("\\").join("/"), 
+									"name": items[i], 
+									"type": type,
+								    "thumb" : getAudioThumbURL(items[i], type) };
+					}
+					else if(type == "v"){
+						rtnItem = { "path": filepath.split("\\").join("/"), 
+									"name": items[i], 
+									"type": type,
+								    "thumb" : getAudioThumbURL(items[i], type) };
+					}
 					rtn.push(rtnItem);
 				}
 			}
@@ -123,6 +132,16 @@ function makeThumbnail(contentsDir, items){
 					if(result.picture[0]){
 						//3. save mp3 thumbnails
 						fs.writeFileSync(makeAudioThumbnailPath(this.filepath, ".mp3"), result.picture[0].data);
+					}
+					if(result.artist.length > 0){
+						var jsonPath = ( __dirname + "/cache/audio/cache.json");
+						//var iconv = new Iconv('EUC-KR', 'UTF-8');
+						//var artist = iconv.convert(result.artist[0]);
+						var writeItem = {
+							"name" :  path.basename(this.filepath),
+							"artist" : result.artist[0]
+						};
+						fs.appendFileSync(jsonPath, JSON.stringify(writeItem));
 					}
 				});
 			}
@@ -206,16 +225,19 @@ app.post('/getAudioThumbnail', function(req, res){
 });
 
 app.get('/getDropboxList', function(req,res){
+	prepairMetadata();
+
 	var rtn = [];
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
 	    parser.parseString(data, function (err, result) {	//xml2js parse
-	    	var vlist = getList( String(result.shareddir.dropbox[0].lnpath), videoFileExt, "v", "" );	    	
+	    	//var vlist = getList( String(result.shareddir.dropbox[0].lnpath), videoFileExt, "v", "" );	    	
 	    	var alist = getList( String(result.shareddir.dropbox[0].lnpath), audioFileExt, "a", "" );
-	    	vlist.sort(comp);
+	    	//vlist.sort(comp);
 	    	alist.sort(comp);
 
-	    	var returnJson = JSON.stringify(vlist.concat(alist));
+	    	//var returnJson = JSON.stringify(vlist.concat(alist));
+	    	var returnJson = JSON.stringify(alist);
 		    if(returnJson.length > 0)
 		    	res.end(returnJson);
 	    });
