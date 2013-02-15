@@ -1,90 +1,138 @@
 ( function(){
 	var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-	var VideoList;
 	VideoList = (function(){
 		function VideoList(root){
-			this.$root = $(root);
+			this.$root = $(root);			
 			this.filelist = [];
+			this.iscroll;
+			this.deviceType;
+			this.init();
 		    this.readVideoList();
 		};
 
+		VideoList.prototype.init = function(){
+			this.getDisplayStatus();
+
+	  		this.registEventHandler();
+
+			this.scrollset();
+			this.refreshScroll();
+		};
+
+		VideoList.prototype.getDisplayStatus = function(){
+			var mqTab = window.matchMedia("all anssd (min-width:650px) and (max-width:1100px)");
+			var mqMobile = window.matchMedia("all and (min-width:0px) and (max-width:650px)");
+			var mqTv = window.matchMedia("all and (min-width:1100px)");
+
+			if (mqTab.matches){
+	  			this.deviceType = "tab";
+	  		}
+	  		else if(mqMobile.matches){
+	  			this.deviceType = "mobile";
+	  		}
+	  		else if(mqTv.matches){
+	  			this.deviceType = "tv";
+	  		}
+		};
+
+		VideoList.prototype.registEventHandler = function(){
+
+			$("#header .back").click(function(){
+			 	$(location).attr('href', "index.html");
+			});
+		};
+
+		VideoList.prototype.scrollset = function(){
+			this.iscroll = new iScroll('slide', {
+				snap:false,
+				hScrollbar: false,
+				vScrollbar: false,
+				momentum: true,		
+				bounce: true,		
+				lockDirection :true
+			});
+		};
+
 		VideoList.prototype.onError = function(req, status, error){
-			alert("code : " + request.status + "\r\nmessage : " + request.reponseText);
+			//alert("code : " + req.status + "\r\nmessage : " + req.reponseText);
+			console.log("code : " + req.status + "\r\nmessage : " + req.responseText);
 		};
 
-		VideoList.prototype.onMouseClickList = function(event){
-			console.log(event);
-			$(location).attr('href', event.currentTarget.attributes.href.nodeValue);
-		};
+		VideoList.prototype.getInnerHTML = function(data, type){
+			var innerHTML = "";
+			var index = 0;
+			for(var i=0; i<data.length/5; i++){
+				if(index == 0)
+					innerHTML += "<ul class='on'>";
+				else
+					innerHTML += "<ul>";
+				for(var j=0; j<5 && index<data.length; j++){
+					if(index == 0)
+						innerHTML += "<li class='on' data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
+					else
+						innerHTML += "<li data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
 
-		VideoList.prototype.onReceiveItemImage = function(data){
-			if(data && data.picture){
-				var src = "data:image/jpg;base64," + data.picture.toString();
-				$("#" + data.selectedVideoId).attr("src", src);
-				$("#" + data.selectedVideoId).attr("width", "128");
-				$("#" + data.selectedVideoId).attr("height", "128");
-				$("#" + data.selectedVideoId).attr("isThumbTried", "yes");
-			}
-		}
-
-		VideoList.prototype.onLoadItemImage = function(event){
-			console.log(event);
-			var vl = this;
-
-			var selectedImg = event.currentTarget;
-			if (selectedImg && (selectedImg.attributes.isThumbTried.nodeValue == 'no')){
-				//get video file path
-				var div = selectedImg.parentNode;
-				var filepath = div.id;
-				if (filepath.length > 0){
-					$.ajax({
-						type : "POST"
-						, async : true
-						, url : "getVideoThumbnail"
-						, data : {path : filepath, selectedVideoId : selectedImg.id}
-						, dataType : "json"
-						, timeout : 3000
-						, cache : false
-						, contentType : "application/x-www-form-urlencoded; charset=UTF-8"
-						, error : function(req, error){
-							__bind(vl.onError(req, status, error), vl);
-						}				
-						, success : function(data){
-							__bind(vl.onReceiveItemImage(data), vl);
-						}				
-					});
+					innerHTML += "<img src=" + data[index].thumb + " alt=''> \
+								<h2> \
+						            <b>" + data[index].name + "</b> \
+						            <span>Macklemore Ryan Lewis Featuring Wanz - The Heist</span> \
+						        </h2> \
+						        <span class='time'>5:12</span> \
+								<span class='ico symbol'>e</span> \
+						        </li>";
+					index++;
 				}
+				innerHTML += "</ul>";
 			}
+			return innerHTML;
 		};
 
-		VideoList.prototype.onReadVideoList = function(data){ 			
-			for(var i=0; i<data.length; i++){
-				var item = data[i];
-			     	var iconId = item.path;
+		VideoList.prototype.registEventHandleOnSlideCtrl = function(){
+			//assing handler
+			$("#slide li").click(function(){
+				var i = $(this).find("img").attr("src");
+				//set background
+				$("#bg").css("background-image","url("+i+")");
 
-				var innerHTML = " \
-					<li href=\"" + item.path + "\" id=innerItem" + String(i) + " class= bg-color-blueDark fg-color-white> \
-						<div class='icon' id=\"" + iconId + "\"> \
-							<img isThumbTried='no' id=innerItemImage" + String(i) + " src='images/video128.png' /> \
-						</div> \
-						<div class='data' id=\"" + item.path + "\"> \
-							<h2 class='fg-color-white'>" + item.name + "</h2> \
-						</div> \
-					</li>";
+				//set selected item on landscape
+				$("#slide li").removeClass("on");
+				$(this).addClass("on");
+				$("#slide ul").removeClass("on");
+				$(this).parent().addClass("on");
 
-			     	$(".listview").append(innerHTML);
+				//set selected item's titme on landscape
+				$("#selectedTitle").text($(this).attr("data_title"));
 
-			     	//Add New Click Event
-			     	$("#innerItem" + i).live("click", __bind( function(event){
-		     			this.onMouseClickList(event);
-		     		}, this));
+				//set audio tag source
+				$("#player").attr("src", $(this).attr("data_path"));
+			});	
+		};
 
-		     		//Add New onLoadImage Event
-			     	$("#innerItemImage" + i).load( __bind( function(event){
-		     			this.onLoadItemImage(event);
-		     		}, this));
+		VideoList.prototype.refreshScroll = function(){
+			var hh =  $("body").height();
+			var ww =  $("body").width();				
+			if(hh < ww){
+				$("#slide .scroll").width($("#slide ul").length * 100+"%");		
+				$("#slide ul").width(100/$("#slide ul").length+"%");	
 			}
+			if(hh > ww){//portrait
+				$("#slide .scroll").width(100+"%");		
+				$("#slide ul").width(100+"%");		
+			}
+			this.iscroll.refresh();
+		};
+
+		VideoList.prototype.onReadVideoList = function(data){
+			//set HTML for landscape
+			var innerHTML = this.getInnerHTML(data);
+			$("#slide .scroll").append(innerHTML);
+			$("#selectedTitle").text(data[0].name);
+			$("#bg").css("background-image","url("+data[0].thumb+")");
+
+			this.registEventHandleOnSlideCtrl();
+
+			this.refreshScroll();
 		};
 
 		VideoList.prototype.readVideoList = function(){
@@ -113,7 +161,7 @@
 	})();
 
 	$(function(){	    
-	    return new VideoList("#listview image fluid");
+	    return new VideoList();
 	});
 
 }).call(this);

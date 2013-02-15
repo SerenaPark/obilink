@@ -1,167 +1,56 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<meta charset="utf-8">
-<title></title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
-<link rel="stylesheet" href="css/main.css">
-<style>
-
-</style>
-<script src="js/assets/jquery-1.9.0.min.js"></script>
-<script src="js/iscroll.js"></script>
+	<meta charset="utf-8">
+	<title></title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
+	<link rel="stylesheet" href="css/main.css">
+	<style></style>
+	<script src="js/assets/jquery-1.9.0.min.js"></script>
+	<script src="js/assets/jquery.jplayer.min.js"></script>
+	<script src="js/iscroll.js"></script>
 <script>
 $(function(){
-	$(window).resize(function(){
-		$("#width").text($(window).width());
-		$("#height").text($(window).height());
-		scroll_set();
-	});	
-	$("#width").text($(window).width());
-	$("#height").text($(window).height());	
-	function scroll_set(){
-		var iscroll = new iScroll('list', {
-			snap:false,
-			hScrollbar: false,
-			vScrollbar: false,
-			momentum: false,		
-			bounce: false,		
-			lockDirection :true
-		});
-	}
-	scroll_set();
-	$(".sound_s_ico").click(function(){
-		$(this).find("span").toggleClass("on");	
-		$(".sound_s").toggle();
-	});
-	$(".slide li,.list li").click(function(){
-		var i = $(this).find("img").attr("src");				
-		//alert(i);
-		$("#bg").css("background-image","url("+i+")");
-		$(this).parent().find("li").removeClass("on");
-		$(this).addClass("on");
-	});	
 	$("#main li.audio").click(function(){
-		$("body").attr("class","audio");
-		$("#main").hide();
-		$("#wrap").show();
-		$("#header h1").text("Music");		
-		scroll_set();
+		$(location).attr('href', "audio.html");
 	});
 	$("#main li.video").click(function(){
-		$("body").attr("class","video");
-		$("#main").hide();
-		$("#wrap").show();
-		$("#header h1").text("Video");
-		scroll_set();
+		$(location).attr('href', "video.html");
 	});	
-	$("#header .back").click(function(){
-		$("body").attr("class","");
-		$("#main").show();
-		$("#wrap").hide();
+	$("#main li.dropbox").click(function(){
+		$(location).attr('href', "dropbox_audio.html");
+	});
+	$("#main li.nscreen").click(function(){
+		$(location).attr('href', "apps/index.html");
 	});
 });
 </script>
 </head>
 <body class="video">
-<div id="test"><span id="width"></span>px * <span id="height"></span>px</div>
+<div id="test">
+	<span id="width"></span>
+	px *
+	<span id="height"></span>
+	px
+</div>
 <div id="main">
 	<ul>
-		<li class="dropbox"><b><h1>Dropbox</h1><span></span></b></li>
-		<li class="nscreen"><b><h1>NSCREEN</h1></b></li>
-		<li class="audio"><b><h1>Audio</h1></b></li>
-		<li class="video"><b><h1>Video</h1></b></li>
+		<li class="dropbox"> <b><h1>Dropbox</h1>
+				<span></span></b> 
+		</li>
+		<li class="nscreen"> <b><h1>NSCREEN</h1></b> 
+		</li>
+		<li class="audio">
+			<b>
+				<h1>Audio</h1>
+			</b>
+		</li>
+		<li class="video">
+			<b>
+				<h1>Video</h1>
+			</b>
+		</li>
 	</ul>
-</div>
-<div id="wrap">	
-	<div id="bg" style="background:url(img/test5.png) no-repeat; background-size:cover; background-position:50% 50%;"></div>
-	<div class="sound"><span class="ico symbol">b</span><div class="bar"><strong style="width:60%;"><b class="symbol">c</b></strong></div></div>
-	<div class="sound_s_ico symbol"><span class="on">b</span></div>
-	<div class="sound_s"><div class="bar"><strong style="height:60%;"><b class="symbol">c</b></strong></div></div>
-	<div id="header">
-		<div class="wrap">
-			<h1>Music</h1>
-			<span class="back symbol">a</span>
-		</div>
-	</div>
-	<div id="content">
-		<div class="land">
-			<div class="title">
-				<h2><span>Thrift Shop <b></b><b class="symbol">e</b></span></h2>
-				<p>Macklemore & Ryan Lewis Featuring Wanz The Heist</p>
-			</div>
-			<div id="slide_tv">		
-				<div class="prev symbol">h</div><!-- class on -->
-				<div class="next symbol">i</div><!-- class on -->
-				<ul class="slide">
-					<li class="on"><span class="focus"></span><img src="img/test5.png" alt=""></li>
-					<li><span class="focus"></span><img src="img/test2.png" alt=""></li>
-					<li><span class="focus"></span><img src="img/test3.png" alt=""></li>
-					<li><span class="focus"></span><img src="img/test4.png" alt=""></li>
-					<li><span class="focus"></span><img src="img/test5.png" alt=""></li>
-					<li><span class="focus"></span><img src="img/test1.png" alt=""></li>
-				</ul>
-			</div>
-			<div id="slide_mobile">
-				<ul class="slide">
-					<li><img src="img/test2.png" alt=""></li>					
-					<li><img src="img/test1.png" alt=""></li>
-					<li><img src="img/test5.png" alt=""></li>
-					<li><img src="img/test3.png" alt=""></li>
-					<li class="on"><img src="img/test4.png" alt=""></li>
-					<li><img src="img/test2.png" alt=""></li>					
-					<li><img src="img/test1.png" alt=""></li>
-					<li><img src="img/test5.png" alt=""></li>
-					<li><img src="img/test3.png" alt=""></li>
-				</ul>
-			</div>
-			<div id="slide_tab">
-				<ul class="slide">
-					<li><img src="img/test5.png" alt=""></li>
-					<li><img src="img/test3.png" alt=""></li>
-					<li class="on"><img src="img/test4.png" alt=""></li>
-					<li><img src="img/test2.png" alt=""></li>					
-					<li><img src="img/test1.png" alt=""></li>
-				</ul>
-			</div>
-			
-		</div>		
-		<div class="port" id="list">
-			<ul class="list">
-				<li><img src="img/test1.png" alt=""> <h2><b>Thrift ShopThrift ShopThrift ShopThrift ShopThrift ShopThrift ShopThrift ShopThrift ShopThrift Shop</b> <span>Macklemore &amp; Ryan Lewis Featuring Wanz - The Heisg Wanz - The Heisg Wanz - The Heist</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test1.png" alt=""> <h2><b>Don't You Worry Child</b> <span>Swedish House Mafia Featuring John Martin - Now That's What I Call Music What I Call Music</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li class="on"><img src="img/test2.png" alt=""> <h2><b>Thrift Shop</b> <span>Macklemore &amp; Ryan Lewis Featuring Wanz - The Heist</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test3.png" alt=""> <h2><b>Thrift Shop</b> <span>Macklemore &amp; Ryan Lewis Featuring Wanz - The Heist</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test1.png" alt=""> <h2><b>Don't You Worry Child</b> <span>Swedish House Mafia Featuring John Martin - Now That's What I Call Music What I Call Music</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test2.png" alt=""> <h2><b>Ho Hey</b> <span>The Lumineers - The Lumineers</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test1.png" alt=""> <h2><b>Don't You Worry Child</b> <span>Swedish House Mafia Featuring John Martin - Now That's What I Call Music What I Call Music</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test3.png" alt=""> <h2><b>Thrift Shop</b> <span>Macklemore &amp; Ryan Lewis Featuring Wanz - The Heist</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test4.png" alt=""> <h2><b>Thrift Shop</b> <span>Macklemore &amp; Ryan Lewis Featuring Wanz - The Heist</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test5.png" alt=""> <h2><b>Scream &amp; Shout</b> <span>will.i.am &amp; Britney Spears - Scream &amp; Shout</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test1.png" alt=""> <h2><b>Don't You Worry Child</b> <span>Swedish House Mafia Featuring John Martin - Now That's What I Call Music What I Call Music</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test4.png" alt=""> <h2><b>Thrift Shop</b> <span>Macklemore &amp; Ryan Lewis Featuring Wanz - The Heist</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test2.png" alt=""> <h2><b>Ho Hey</b> <span>The Lumineers - The Lumineers</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test3.png" alt=""> <h2><b>Thrift Shop</b> <span>Macklemore &amp; Ryan Lewis Featuring Wanz - The Heist</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-				<li><img src="img/test4.png" alt=""> <h2><b>Thrift Shop</b> <span>Macklemore &amp; Ryan Lewis Featuring Wanz - The Heist</span></h2> <span class="time">5:12</span><span class="ico symbol">e</span></li>
-			</ul>
-		</div>
-	</div>	
-	<div id="footer">
-		<div class="wrap">			
-			<div class="time_line"><strong style="width:70%;"><b class="symbol">c</b></strong></div>
-			<span class="time_start">3:49</span>
-			<span class="time_end">4:23</span>			
-			<div class="title">
-				<h3>I Knew You Were Trouble.</h3>
-				<p>Taylor Swift - Red</p>
-			</div>
-			<ul class="control">
-				<li class="prev symbol">f</li>
-				<li class="puase symbol">d</li><!-- <li class="play">e</li> -->				
-				<li class="next symbol">g</li>
-			</ul>
-		</div>
-	</div>	
 </div>
 </body>
 </html>
