@@ -49,6 +49,26 @@
 			$("#header .back").click(function(){
 			 	$(location).attr('href', "index.html");
 			});
+
+	  		$("#footer .wrap .prev").click(function(){
+				console.log("prev");
+			});
+			$("#footer .wrap .next").click(function(){
+				console.log("next");
+			});
+
+			$("#footer .wrap .play").click(function(){
+				if($(this).text() == "d"){
+					//pause
+					$(this).text("e");
+				}
+				else if($(this).text() == "e"){
+					//play
+					//do not set to "d" for returning from video player.
+					//$(this).text("d");
+					$(location).attr('href', $("#footer .wrap .title > p").attr("href"));
+				}
+			});	
 		};
 
 		VideoList.prototype.scrollset = function(){
@@ -81,14 +101,14 @@
 					else
 						innerHTML += "<li data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
 
-					innerHTML += "<img src=" + data[index].thumb + " alt=''> \
-								<h2> \
-						            <b>" + data[index].name + "</b> \
-						            <span>Macklemore Ryan Lewis Featuring Wanz - The Heist</span> \
-						        </h2> \
-						        <span class='time'>5:12</span> \
-								<span class='ico symbol'>e</span> \
-						        </li>";
+					innerHTML += "<img src=\"getVideoThumbnail/" + data[index].thumb + "\" alt=''> \
+							<h2> \
+							<b>" + data[index].name + "</b> \
+							<span>Macklemore Ryan Lewis Featuring Wanz - The Heist</span> \
+							</h2> \
+							<span class='time'>5:12</span> \
+							<span class='ico symbol'>e</span> \
+							</li>";
 					index++;
 				}
 				innerHTML += "</ul>";
@@ -101,7 +121,7 @@
 			$("#slide li").click(function(){
 				var i = $(this).find("img").attr("src");
 				//set background
-				$("#bg").css("background-image","url("+i+")");
+				$("#bg").css("background-image","url(\""+i+"\")");
 
 				//set selected item on landscape
 				$("#slide li").removeClass("on");
@@ -112,8 +132,13 @@
 				//set selected item's titme on landscape
 				$("#selectedTitle").text($(this).attr("data_title"));
 
-				//set audio tag source
-				$("#player").attr("src", $(this).attr("data_path"));
+				//set footer play button
+				$("#footer .wrap .play").text("e");
+
+				//set footer title
+				$("#footer .wrap .title > h3").text($(this).attr("data_title"));
+				$("#footer .wrap .title > p").attr("href", $(this).attr("data_path"));
+				$("#footer .wrap .title > p").text("video file selected...");
 			});	
 		};
 
@@ -129,6 +154,7 @@
 				$("#slide ul").width(100+"%");		
 			}
 			this.iscroll.refresh();
+			$('.time_control input').slideControl();
 		};
 
 		VideoList.prototype.onReadVideoList = function(data){
@@ -136,7 +162,12 @@
 			var innerHTML = this.getInnerHTML(data);
 			$("#slide .scroll").append(innerHTML);
 			$("#selectedTitle").text(data[0].name);
-			$("#bg").css("background-image","url("+data[0].thumb+")");
+			$("#bg").css("background-image","url(\"getVideoThumbnail/"+data[0].thumb+"\")");
+
+			//set footer title
+			$("#footer .wrap .title > h3").text(data[0].name);
+			$("#footer .wrap .title > p").attr("href", data[0].path);
+			$("#footer .wrap .title > p").text("video file selected...");
 
 			this.registEventHandleOnSlideCtrl();
 

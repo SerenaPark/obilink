@@ -60,7 +60,6 @@ function getAudioThumbURL(name, type){
 			thumbURL = "images/music128.png";
 	}
 	else if (type=="v"){
-
 	}
 	return thumbURL;
 }
@@ -86,7 +85,7 @@ function getList(dir, fileTypeExts, type, __vd__NameWithEndSlash){
 						rtnItem = { "path": filepath.split("\\").join("/"), 
 									"name": items[i], 
 									"type": type,
-								    "thumb" : getAudioThumbURL(items[i], type) };
+								    "thumb" : filepath.split("\\").join("/") + ".jpg" };
 					}
 					rtn.push(rtnItem);
 				}
@@ -259,12 +258,8 @@ app.get('/getVideoList', function(req,res){
 	});
 });
 
-app.post('/getVideoThumbnail', function(req, res){
-	var tmpPath = req.body.path;
-	var reqVideoId = req.body.selectedVideoId;
-	var item = new Object();
-	item.selectedVideoId = reqVideoId;
-	item.picture = "";
+app.get('/getVideoThumbnail/*', function(req, res){
+	var tmpPath = req.params[0].substring(0, req.params[0].lastIndexOf('.'));
 
 	if(tmpPath) {
 		var reqVideoPath = "/contents" + tmpPath.substring(tmpPath.indexOf(virtualDirectoryVideo)+virtualDirectoryVideo.length);
@@ -274,22 +269,8 @@ app.post('/getVideoThumbnail', function(req, res){
 
 		//check a previous thumbnail file.
 		if(fs.existsSync(thumnailFile)) {
-			var thumbNailData = fs.createReadStream(thumnailFile, {flags: 'r', encoding: 'base64', bufferSize: 8192 });
-			thumbNailData.on('data', function(d) {
-				//YOHO:Error - Do not read and append small buffer data. Currently it makes data length error.
-				//I don't know why, nodejs fs module bugs???. To avoid this problem,
-				//keep bufferSize 2-times larger than jpg file size to read all data of a thumbnail file at a time.
-				//base64 encoded size: if original data is 55 bytes, the encoded size is (55/3) * 4 = 19 * 4 = 76 bytes.
-				//about 30% increasing.
-				item.picture = item.picture + d;
-			});
-			thumbNailData.on('error', function(e) {
-				item.picture = "";
-			});
-			thumbNailData.on('close', function() {
-				res.end(JSON.stringify(item));
-				console.log("Screenshots: "+thumnailFile.substring(thumnailFile.lastIndexOf('\\')+1)+" was replied.");
-			});
+			res.sendfile(thumnailFile);
+			console.log("Screenshots: "+thumnailFile.substring(thumnailFile.lastIndexOf('\\')+1)+" was replied.");
 		}
 		else {
 			// make a directory for thumbnail files.
@@ -320,32 +301,20 @@ app.post('/getVideoThumbnail', function(req, res){
 						console.log("Screenshots: "+filenames+" was saved.");
 					}
 					if(filenames) {
-						var thumbNailData = fs.createReadStream(thumnailFile, {flags: 'r', encoding: 'base64', bufferSize: 8192 });
-						thumbNailData.on('data', function(d) {
-							//YOHO:Error - Do not read and append small buffer data. Currently it makes data length error.
-							//I don't know why, nodejs fs module bugs???. To avoid this problem,
-							//keep bufferSize 2-times larger than jpg file size to read all data of a thumbnail file at a time.
-							//base64 encoded size: if original data is 55 bytes, the encoded size is (55/3) * 4 = 19 * 4 = 76 bytes.
-							//about 30% increasing.
-							item.picture = item.picture + d;
-						});
-						thumbNailData.on('error', function(e) {
-							item.picture = "";
-						});
-						thumbNailData.on('close', function() {
-							res.end(JSON.stringify(item));
-							console.log("Screenshots: "+filenames+" was replied.");
-							//fs.unlinkSync(thumnailFile);
-							//console.log("Screenshots: "+filenames+" was deleted after using.");
-						});
+						res.sendfile(thumnailFile);
+						console.log("Screenshots: "+filenames+" was replied.");
 					}
 					else {
-						res.end(JSON.stringify(item));
+						res.end();
+						//or send default image.
+						//res.sendfile( __dirname+"\\web\\img\\video128.png");
 					}
 				});
 			}
 			else {
-				res.end(JSON.stringify(item));
+				res.end();
+				//or send default image.
+				//res.sendfile( __dirname+"\\web\\img\\video128.png");
 				console.log("Screenshots: there is no viedo file at " + pathToMovie);
 			}
 		}
