@@ -9,7 +9,7 @@ QT += network xmlpatterns xml
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = koccalink
+TARGET = obilink
 TEMPLATE = app
 
 

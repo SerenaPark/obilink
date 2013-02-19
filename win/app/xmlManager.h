@@ -27,7 +27,7 @@ private:
 private:
     static CXmlManager* m_instance;
     QFile m_sharedDirListFile;                              // conf.xml
-    QProcess m_lnProc;                                      // a process to make symbolic directory
+    QProcess m_lnProc;                                      // a process to create symbolic directory
     QProcess m_rjProc;                                      // a process to remove symbolic directory
     QStringList m_localShareDirList;                        // list of share directory path
     QStringList m_localSymbolicDirList;                     // list of symbolic path of share directory
@@ -47,6 +47,7 @@ public:
 
     void updateDropbox(bool);
     bool isDropboxShareMode();                              // return m_dropboxShareMode
+    bool isDropboxInstalled();                              // return true, if dropbox installed in the local computer
 };
 
 #endif // CXmlManager_H

@@ -6,7 +6,7 @@ var xml2js = require('xml2js');
 var musicmetadata = require('musicmetadata');
 //var Iconv  = require('iconv').Iconv;
 var confxmlPath = __dirname + "/../../conf.xml";
-var videoFileExt = [".avi", ".mp4"];
+var videoFileExt = [".avi", ".mp4", ".mov"];
 var audioFileExt = [".mp3"];
 var cacheDirectoryVideo = "cache/video";
 var virtualDirectoryVideo = "__vd__video";
@@ -74,6 +74,7 @@ function getList(dir, fileTypeExts, type, __vd__NameWithEndSlash){
 			for(var i=0; i<items.length; i++) {
 				filepath = path.join(__vd__NameWithEndSlash + dir + "/" + items[i]);
 				var extname = path.extname(items[i]);
+				extname = extname.toLowerCase();
 				if ( fileTypeExts.indexOf(extname) >= 0 ){
 					if(type == "a"){
 						rtnItem = { "path": filepath.split("\\").join("/"), 

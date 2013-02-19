@@ -3,6 +3,7 @@
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
 #include <QXmlQuery>
+#include <QMessageBox>
 
 #include <QDir>
 #include <QDebug>
@@ -11,8 +12,8 @@
 /* File     : xmlManager.cpp
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0.3
- * Date     : 2013-02-07
+ * Version  : 2.0.4
+ * Date     : 2013-02-08
  */
 
 CXmlManager* CXmlManager::m_instance = NULL;
@@ -46,14 +47,6 @@ void CXmlManager::destroy()
     }
 }
 
-QString CXmlManager::getDropboxInstalledPath()
-{
-    // FIXME. Exception when dropbox has not been installed
-    QDir dir;
-    QFileInfo SymbolicPath = dir.homePath().replace("/", "\\") + "\\Links\\Dropbox.lnk";
-
-    return SymbolicPath.symLinkTarget();
-}
 
 
 bool CXmlManager::saveXML()
@@ -131,28 +124,6 @@ QStringList CXmlManager::getXmlValue(QString xmlElement)
     return shareDirList;
 }
 
-bool CXmlManager::isDropboxShareMode()
-{
-    // FIXME. 쿼리문이 정상적인지 외부 프로그램을 통해 확인
-    // FIXME. 드랍박스가 있는지 판단하는 더 좋은 코드 확인
-    QXmlQuery query;
-    QString queryResult;
-
-    m_sharedDirListFile.open(QFile::ReadOnly);
-
-    query.bindVariable("shareDir", &m_sharedDirListFile);
-    query.setQuery("doc($shareDir)/shareddir");
-    query.evaluateTo(&queryResult);
-
-    m_sharedDirListFile.close();
-
-    if (queryResult.contains("dropbox"))
-        return true;
-
-    return false;
-
-}
-
 QString CXmlManager::makeSymbolicPath(const QString originPath)
 {
     QString symbolicRelativePath = originPath;
@@ -166,7 +137,7 @@ QString CXmlManager::makeSymbolicPath(QString originPath, const QString symbolic
     QDir dir;
     QString symbolicAbsolutePath = getSymbolicAbsoultePath(symbolicRelativePath);
 
-    QString command = "\"" + dir.currentPath().replace("/", "\\") + "\\extbin\\ln.exe\"";
+    QString command = "\"" + dir.currentPath().replace("/", "\\") + "\\extbin\\ln.exe\""; /* ln.exe from http://www.flexhex.com for free */
     QString arg1 = "\"" + originPath.replace("/", "\\") + "\"";
     QString arg2 = "\"" + symbolicAbsolutePath + "\"";
 
@@ -178,6 +149,7 @@ QString CXmlManager::makeSymbolicPath(QString originPath, const QString symbolic
     }
 
     m_lnProc.start(command + " " + arg1 + " " + arg2);
+    m_lnProc.waitForFinished();
 
     return symbolicRelativePath;
 }
@@ -218,7 +190,7 @@ bool CXmlManager::removeShareDir(QString symbolicRelativePath)
 {
 
     QDir dir;
-    QString command = "\"" + dir.currentPath().replace("/", "\\") + "\\extbin\\rj.exe\"";
+    QString command = "\"" + dir.currentPath().replace("/", "\\") + "\\extbin\\rj.exe\""; /* rj.exe from http://www.flexhex.com for free */
     QString symbolicAbsolutePath = getSymbolicAbsoultePath(symbolicRelativePath);
 
     m_rjProc.start(command + " \"" + symbolicAbsolutePath + "\"");
@@ -231,7 +203,6 @@ bool CXmlManager::removeShareDir(QString symbolicRelativePath)
 
 void CXmlManager::updateDropbox(bool checked)
 {
-    // FIXME. add exception for case of dropbox has not been installed
     if (checked)
         makeSymbolicPath(getDropboxInstalledPath(), "dropbox");
     else
@@ -241,6 +212,51 @@ void CXmlManager::updateDropbox(bool checked)
 
     CXmlManager::instance()->saveXML();
     return;
+}
+
+bool CXmlManager::isDropboxShareMode()
+{
+    // UPGRADE. need to upgrade logic & code
+    QXmlQuery query;
+    QString queryResult;
+
+    m_sharedDirListFile.open(QFile::ReadOnly);
+
+    query.bindVariable("shareDir", &m_sharedDirListFile);
+    query.setQuery("doc($shareDir)/shareddir");
+    query.evaluateTo(&queryResult);
+
+    m_sharedDirListFile.close();
+
+    if (queryResult.contains("dropbox"))
+        return true;
+
+    return false;
+
+}
+
+bool CXmlManager::isDropboxInstalled()
+{
+    if (getDropboxInstalledPath().length() < 1) {
+        return false;
+    }
+    return true;
+}
+
+QString CXmlManager::getDropboxInstalledPath()
+{
+    QDir dir;
+    QFileInfo SymbolicPath = dir.homePath().replace("/", "\\") + "\\Links\\Dropbox.lnk";
+    QString installedDropboxPath = SymbolicPath.symLinkTarget() + "\\Apps\\OBILINK";
+
+    if (!QDir(SymbolicPath.symLinkTarget() + "\\Apps").exists()) {
+        QDir().mkdir(SymbolicPath.symLinkTarget() + "\\Apps");
+        QDir().mkdir(SymbolicPath.symLinkTarget() + "\\Apps\\OBILINK");
+    } else if (!QDir(SymbolicPath.symLinkTarget() + "\\Apps\\OBILINK").exists()) {
+        QDir().mkdir(SymbolicPath.symLinkTarget() + "\\Apps\\OBILINK");
+    }
+
+    return installedDropboxPath;
 }
 
 QStringList CXmlManager::getLocalShareDirList()
