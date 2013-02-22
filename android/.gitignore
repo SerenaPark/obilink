@@ -15,7 +15,7 @@ gen/
 #.project
 
 # Build files
-#libs/
+libs/
 obj/
 out/
 
