@@ -10,7 +10,8 @@
 bin/
 gen/
 
-# Eclipse project files
+# Eclipse files
+.metadata/
 #.classpath
 #.project
 
