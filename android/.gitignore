@@ -10,12 +10,13 @@
 bin/
 gen/
 
-# Eclipse project files
+# Eclipse files
+.metadata/
 #.classpath
 #.project
 
 # Build files
-#libs/
+libs/
 obj/
 out/
 
