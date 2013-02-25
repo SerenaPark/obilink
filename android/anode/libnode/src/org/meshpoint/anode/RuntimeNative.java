@@ -53,14 +53,15 @@ final class RuntimeNative {
 		
 		// Example: `/data/data/org.mypackage.android/node_modules`
 		// TODO: make the node dynamic library not depend on assumed /data/data filesystem structure
-		String modulePath = sep + "data" + sep + "data" + sep + packageName + sep + "node_modules";
+		String modulePath = sep + "storage" + sep + "extSdCard" + sep + "node_modules";
+		String bridgePath = sep + "data" + sep + "data" + sep + packageName + sep + "node_modules";
 		String runtimePath = sep + "data" + sep + "data" + sep + packageName + sep + "app";
 		
 		try {
 			extractLib(ctx, runtimePath, RUNTIME_LIBRARY);
 			System.load(runtimePath + '/' + RUNTIME_LIBRARY);
-			extractLib(ctx, modulePath, BRIDGE_LIBRARY);
-			System.load(modulePath + '/' + BRIDGE_LIBRARY);
+			extractLib(ctx, bridgePath, BRIDGE_LIBRARY);
+			System.load(bridgePath + '/' + BRIDGE_LIBRARY);
 			Log.v(TAG, "init: loaded libraries: modulePath = " + modulePath);
 			nodeInit(argv, modulePath);
 		} catch(UnsatisfiedLinkError e) {

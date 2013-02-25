@@ -1,12 +1,12 @@
-package com.koccalink.anode.module;
+package org.obilink.api;
 
 import org.meshpoint.anode.bridge.Env;
 import org.meshpoint.anode.java.Base;
 
-public abstract class MediaRetrieverBase extends Base {
-    private static short classId = Env.getInterfaceId(MediaRetrieverBase.class);
+public abstract class MediaRetriever extends Base {
+    private static short classId = Env.getInterfaceId(MediaRetriever.class);
     
-    protected MediaRetrieverBase() {
+    protected MediaRetriever() {
         super(classId);     
     }
     

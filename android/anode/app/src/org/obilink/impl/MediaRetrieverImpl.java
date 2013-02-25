@@ -1,4 +1,4 @@
-package com.koccalink.anode.module;
+package org.obilink.impl;
 
 import java.io.ByteArrayOutputStream;
 
@@ -6,6 +6,8 @@ import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
 
 import org.meshpoint.anode.AndroidContext;
+
+import org.obilink.api.MediaRetriever;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
@@ -16,8 +18,8 @@ import android.provider.MediaStore;
 import android.util.Base64;
 //import android.util.Log;
 
-public class MediaRetriever extends MediaRetrieverBase implements IModule {
-	final String TAG = "MediaRetriever";
+public class MediaRetrieverImpl extends MediaRetriever implements IModule {
+	final String TAG = "MediaRetrieverImpl";
 	
 	ContentResolver mContentResolver;
 	Cursor mCursor;

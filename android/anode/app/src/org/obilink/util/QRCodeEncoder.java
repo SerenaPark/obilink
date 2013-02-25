@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.koccalink.anode.qrcode;
+package org.obilink.util;
 
 import android.provider.ContactsContract;
 import android.graphics.Bitmap;

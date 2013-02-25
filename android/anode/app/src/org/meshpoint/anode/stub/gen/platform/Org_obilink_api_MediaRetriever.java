@@ -2,13 +2,13 @@
 
 package org.meshpoint.anode.stub.gen.platform;
 
-public final class Com_koccalink_anode_module_MediaRetrieverBase {
+public final class Org_obilink_api_MediaRetriever {
 
 	private static Object[] __args = new Object[2];
 
 	public static Object[] __getArgs() { return __args; }
 
-	static Object __invoke(com.koccalink.anode.module.MediaRetrieverBase inst, int opIdx, Object[] args) {
+	static Object __invoke(org.obilink.api.MediaRetriever inst, int opIdx, Object[] args) {
 		Object result = null;
 		switch(opIdx) {
 		case 0: /* getBitmapValue */
