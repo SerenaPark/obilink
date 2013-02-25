@@ -37,12 +37,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.ImageView;
-import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 
 
-import com.koccalink.anode.qrcode.QRCodeEncoder;
-import com.koccalink.anode.qrcode.Contents;
+import org.obilink.util.QRCodeEncoder;
+import org.obilink.util.Contents;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 
@@ -202,7 +201,7 @@ public class AnodeActivity extends Activity implements StateListener {
 			}
 		}
 		
-		return "";
+		return "0.0.0.0";
 	}
 	
 	private void updateQRCodeInfo(boolean show)
@@ -224,10 +223,10 @@ public class AnodeActivity extends Activity implements StateListener {
 		
 		// FIXME
 		// hardcode needs to be replaced in other way 
-		String qrcodeURL = "http://" + wifiAddr + ":8888/index.html";
+		String qrcodeURL = "http://" + wifiAddr + ":8888";
 		qrcodeText.setText(qrcodeURL);
 	
-		int smallerDimension = 100;
+		int smallerDimension = 200;
 		QRCodeEncoder qrEncoder = new QRCodeEncoder(qrcodeURL, null, Contents.Type.TEXT, BarcodeFormat.QR_CODE.toString(), smallerDimension);
 		try {
 			Bitmap qrcodeBitmap = qrEncoder.encodeAsBitmap();			

@@ -7,8 +7,10 @@
 *.node
 
 # ADK generated files
-bin/
-gen/
+anode/app/bin/
+anode/app/gen/
+anode/libnode/bin
+anode/libnode/gen
 
 # Eclipse files
 .metadata/
