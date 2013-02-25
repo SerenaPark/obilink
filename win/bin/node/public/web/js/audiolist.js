@@ -129,7 +129,7 @@
 				$("#slide ul").removeClass("on");
 				$(this).parent().addClass("on");
 
-				//set selected item's titme on landscape
+				//set selected item's title on landscape
 				$("#selectedTitle").text($(this).attr("data_title"));
 
 				//set audio tag source
@@ -141,6 +141,10 @@
 				//set footer title
 				$("#footer .wrap .title > h3").text($(this).attr("data_title"));
 				$("#footer .wrap .title > p").text("Artist");
+
+				//set time
+				//$("footer .wrap .time_start").attr($("player").trigger("currenttime"));
+				//$("footer .wrap .time_end").attr($("player").trigger("duration"));
 			});	
 		};
 
@@ -173,6 +177,9 @@
 			//set footer title
 			$("#footer .wrap .title > h3").text(data[0].name);
 			$("#footer .wrap .title > p").text("Artist");
+
+			//$("footer .wrap .time_start").();
+			//$("footer .wrap .time_end").();
 
 			this.registEventHandleOnSlideCtrl();
 
@@ -209,82 +216,3 @@
 	});
 
 }).call(this);
-
-
-		// AudioList.prototype.getInnerHTMLLandscapeForTab = function(data){
-		// 	var innerHTML = "	<div id='slide_tab'> \
-		// 							<ul class='slide'> ";
-
-		// 	var list = "";
-		// 	for(var i=0; i<data.length; i++){
-		// 		if(i == 0)
-		// 		 	list += "<li class='on' data_title='"+ data[i].name +"' data_path='"+ data[i].path +"'>";
-		// 		else
-		// 		 	list += "<li data_title='"+ data[i].name +"' data_path='"+ data[i].path +"'>";
-		// 		list += "<img src=" + data[i].thumb + " alt=''></li>";
-		// 	}
-		// 	innerHTML += list;
-		// 	innerHTML += "</ul></div>";
-		// 	return innerHTML;
-		// };
-
-		// AudioList.prototype.getInnerHTMLPortrait = function(data){
-		// 	var innerHTML = "<ul class='list'>";
-
-		// 	var list = "";
-		// 	for(var i=0; i<data.length; i++){
-		// 		if(i == 0)
-		// 		 	list += "<li class='on' data_title='"+ data[i].name +"' data_path='"+ data[i].path +"'>";
-		// 		else
-		// 		 	list += "<li data_title='"+ data[i].name +"' data_path='"+ data[i].path +"'>";
-		// 		list += "<img src=" + data[i].thumb + " alt=''> \
-		// 		        <h2> \
-		// 		        	<b>" + data[i].name + "</b> \
-		// 		        	<span> \
-		// 		        	" + "AritistName" + " \
-		// 		        	</span> \
-		// 		        </h2> \
-		// 		        <span class='time'>0:00</span> \
-		// 		        </li>";
-		// 	}			
-		// 	innerHTML += list;
-		// 	innerHTML += "</ul>"
-		// 	return innerHTML;
-		// };
-
-		// AudioList.prototype.getInnerHTMLLandscapeForMobile = function(data){
-		// 	var innerHTML = "	<div id='slide_mobile'> \
-		// 							<ul class='slide'> ";
-
-		// 	var list = "";
-		// 	for(var i=0; i<data.length; i++){
-		// 		if(i == 0)
-		// 		 	list += "<li class='on' data_title='"+ data[i].name +"' data_path='"+ data[i].path +"'>";
-		// 		else
-		// 		 	list += "<li data_title='"+ data[i].name +"' data_path='"+ data[i].path +"'>";
-		// 		list += "<img src=" + data[i].thumb + " alt=''></li>";
-		// 	}
-		// 	innerHTML += list;
-		// 	innerHTML += "</ul></div>";
-		// 	return innerHTML;
-		// };
-
-		// AudioList.prototype.getInnerHTMLLandscapeForTV = function(data){
-		// 	var innerHTML = "	<div id='slide_tv'> \
-		// 							<div class='prev symbol'>h</div> \
-		// 							<div class='next symbol'>i</div> \
-		// 							<ul class='slide'> ";
-
-		// 	var list = "";
-		// 	for(var i=0; i<data.length; i++){
-		// 		if(i == 0)
-		// 		 	list += "<li class='on' data_title='"+ data[i].name +"' data_path='"+ data[i].path +"'>";
-		// 		else
-		// 		 	list += "<li data_title='"+ data[i].name +"' data_path='"+ data[i].path +"'>";
-		// 		list += "<span class='focus'></span>";
-		// 		list += "<img src=" + data[i].thumb + " alt=''></li>";
-		// 	}
-		// 	innerHTML += list;
-		// 	innerHTML += "</ul></div>";
-		// 	return innerHTML;
-		// };

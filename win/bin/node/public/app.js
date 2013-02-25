@@ -6,7 +6,7 @@ var xml2js = require('xml2js');
 var musicmetadata = require('musicmetadata');
 //var Iconv  = require('iconv').Iconv;
 var confxmlPath = __dirname + "/../../conf.xml";
-var videoFileExt = [".avi", ".mp4"];
+var videoFileExt = [".avi", ".mp4", ".mov"];
 var audioFileExt = [".mp3"];
 var cacheDirectoryVideo = "cache/video";
 var virtualDirectoryVideo = "__vd__video";
@@ -74,6 +74,7 @@ function getList(dir, fileTypeExts, type, __vd__NameWithEndSlash){
 			for(var i=0; i<items.length; i++) {
 				filepath = path.join(__vd__NameWithEndSlash + dir + "/" + items[i]);
 				var extname = path.extname(items[i]);
+				extname = extname.toLowerCase();
 				if ( fileTypeExts.indexOf(extname) >= 0 ){
 					if(type == "a"){
 						rtnItem = { "path": filepath.split("\\").join("/"), 
@@ -223,20 +224,36 @@ app.post('/getAudioThumbnail', function(req, res){
 	}
 });
 
-app.get('/getDropboxList', function(req,res){
-	prepairMetadata();
+app.get('/getDropboxAudioList', function(req,res){
+	//prepairMetadata();
 
 	var rtn = [];
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
 	    parser.parseString(data, function (err, result) {	//xml2js parse
-	    	//var vlist = getList( String(result.shareddir.dropbox[0].lnpath), videoFileExt, "v", "" );	    	
+	    	 for(var i=0; i<result.shareddir.dropbox.length; i++){
+	    		rtn = rtn.concat( getList(String(result.shareddir.dropbox[i].lnpath), audioFileExt, "a", ""));
+	    	} 
+	    	/*var vlist = getList( String(result.shareddir.dropbox[0].lnpath), videoFileExt, "v", "" );	    	
 	    	var alist = getList( String(result.shareddir.dropbox[0].lnpath), audioFileExt, "a", "" );
-	    	//vlist.sort(comp);
-	    	alist.sort(comp);
+	    	vlist.sort(comp);
+	    	alist.sort(comp);*/
+	    	var returnJson = JSON.stringify(rtn.sort(comp));
+		    if(returnJson.length > 0)
+		    	res.end(returnJson);
+	    });
+	});
+});
 
-	    	//var returnJson = JSON.stringify(vlist.concat(alist));
-	    	var returnJson = JSON.stringify(alist);
+app.get('/getDropboxVideoList', function(req,res){
+	var rtn = [];
+	var parser = new xml2js.Parser();	//xml2js parser
+	fs.readFile(confxmlPath, function(err, data) {
+	    parser.parseString(data, function (err, result) {	//xml2js parse
+	    	for(var i=0; i<result.shareddir.dropbox.length; i++){
+	    		rtn = rtn.concat( getList(String(result.shareddir.dropbox[i].lnpath), videoFileExt, "v", ""));
+	    	}
+	    	var returnJson = JSON.stringify(rtn.sort(comp));
 		    if(returnJson.length > 0)
 		    	res.end(returnJson);
 	    });

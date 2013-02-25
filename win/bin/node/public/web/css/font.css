@@ -26,7 +26,8 @@ body,
          url('../font/OpenSans-Bold.woff') format('woff'),
          url('../font/OpenSans-Bold.ttf') format('truetype');
 }
-#music h1,
+#menu ul li,
+#header h1,
 #music h2,
 #music h3,
 #footer .time_start,

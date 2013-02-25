@@ -1,17 +1,17 @@
 ( function(){
 	var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-	DropboxAudioList = (function(){
-		function DropboxAudioList(root){
+	DropboxVideoList = (function(){
+		function DropboxVideoList(root){
 			this.$root = $(root);			
 			this.filelist = [];
 			this.iscroll;
 			this.deviceType;
 			this.init();
-		    this.readDropboxAudioList();
+		    this.readDropboxVideoList();
 		};
 
-		DropboxAudioList.prototype.init = function(){
+		DropboxVideoList.prototype.init = function(){
 			this.getDisplayStatus();
 
 	  		this.registEventHandler();
@@ -28,7 +28,7 @@
 			});
 		};
 
-		DropboxAudioList.prototype.getDisplayStatus = function(){
+		DropboxVideoList.prototype.getDisplayStatus = function(){
 			var mqTab = window.matchMedia("all anssd (min-width:650px) and (max-width:1100px)");
 			var mqMobile = window.matchMedia("all and (min-width:0px) and (max-width:650px)");
 			var mqTv = window.matchMedia("all and (min-width:1100px)");
@@ -44,7 +44,7 @@
 	  		}
 		};
 
-		DropboxAudioList.prototype.registEventHandler = function(){
+		DropboxVideoList.prototype.registEventHandler = function(){
 
 			$("#header .back").click(function(){
 			 	$(location).attr('href', "dropbox.html");
@@ -71,7 +71,7 @@
 			});	
 		};
 
-		DropboxAudioList.prototype.scrollset = function(){
+		DropboxVideoList.prototype.scrollset = function(){
 			this.iscroll = new iScroll('slide', {
 				snap:false,
 				hScrollbar: false,
@@ -82,12 +82,12 @@
 			});
 		};
 
-		DropboxAudioList.prototype.onError = function(req, status, error){
+		DropboxVideoList.prototype.onError = function(req, status, error){
 			//alert("code : " + req.status + "\r\nmessage : " + req.reponseText);
 			console.log("code : " + req.status + "\r\nmessage : " + req.responseText);
 		};
 
-		DropboxAudioList.prototype.getInnerHTML = function(data, type){
+		DropboxVideoList.prototype.getInnerHTML = function(data, type){
 			var innerHTML = "";
 			var index = 0;
 			for(var i=0; i<data.length/5; i++){
@@ -116,7 +116,7 @@
 			return innerHTML;
 		};
 
-		DropboxAudioList.prototype.registEventHandleOnSlideCtrl = function(){
+		DropboxVideoList.prototype.registEventHandleOnSlideCtrl = function(){
 			//assing handler
 			$("#slide li").click(function(){
 				var i = $(this).find("img").attr("src");
@@ -133,7 +133,7 @@
 				$("#selectedTitle").text($(this).attr("data_title"));
 
 				//set audio tag source
-				$("#player").attr("src", $(this).attr("data_path"));
+				// $("#player").attr("src", $(this).attr("data_path"));
 
 				//set footer play button
 				$("#footer .wrap .play").text("e");
@@ -144,7 +144,7 @@
 			});	
 		};
 
-		DropboxAudioList.prototype.refreshScroll = function(){
+		DropboxVideoList.prototype.refreshScroll = function(){
 			var hh =  $("body").height();
 			var ww =  $("body").width();				
 			if(hh < ww){
@@ -159,14 +159,15 @@
 			$('.time_control input').slideControl();
 		};
 
-		DropboxAudioList.prototype.onReadDropboxAudioList = function(data){
+		DropboxVideoList.prototype.onReadDropboxVideoList = function(data){
 			//set HTML for landscape
 			var innerHTML = this.getInnerHTML(data);
 			$("#slide .scroll").append(innerHTML);
 			$("#selectedTitle").text(data[0].name);
 			$("#bg").css("background-image","url("+data[0].thumb+")");
+		
+			// $("#player").attr("src", data[0].path);
 
-			$("#player").attr("src", data[0].path);
 			//set footer title
 			$("#footer .wrap .title > h3").text(data[0].name);
 			$("#footer .wrap .title > p").text("Artist");
@@ -176,13 +177,13 @@
 			this.refreshScroll();
 		};
 
-		DropboxAudioList.prototype.readDropboxAudioList = function(){
+		DropboxVideoList.prototype.readDropboxVideoList = function(){
 			var vl = this;
 
 			$.ajax({
 				type : "GET"
 				, async : true
-				, url : "getDropboxAudioList"
+				, url : "getDropboxVideoList"
 				, dataType : "json"
 				, timeout : 3000
 				, cache : false
@@ -191,16 +192,16 @@
 					__bind(vl.onError(req, status, error), vl);
 				}				
 				, success : function(data){
-					__bind(vl.onReadDropboxAudioList(data), vl);
+					__bind(vl.onReadDropboxVideoList(data), vl);
 				}				
 			});
 		};
 
-		return DropboxAudioList;
+		return DropboxVideoList;
 	})();
 
 	$(function(){	    
-	    return new DropboxAudioList();
+	    return new DropboxVideoList();
 	});
 
 }).call(this);
