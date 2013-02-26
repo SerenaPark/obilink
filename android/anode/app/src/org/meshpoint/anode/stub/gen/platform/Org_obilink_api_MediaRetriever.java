@@ -11,33 +11,46 @@ public final class Org_obilink_api_MediaRetriever {
 	static Object __invoke(org.obilink.api.MediaRetriever inst, int opIdx, Object[] args) {
 		Object result = null;
 		switch(opIdx) {
-		case 0: /* getBitmapValue */
-			result = inst.getBitmapValue(
+		case 0: /* close */
+			inst.close(
 				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue
 			);
 			break;
-		case 1: /* getColumnIndex */
+		case 1: /* getBitmapValue */
+			result = inst.getBitmapValue(
+				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue,
+				(int)((org.meshpoint.anode.js.JSValue)args[1]).longValue
+			);
+			break;
+		case 2: /* getColumnIndex */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.getColumnIndex(
-				(String)args[0]
+				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue,
+				(String)args[1]
 			));
 			break;
-		case 2: /* getLongValue */
+		case 3: /* getLongValue */
 			result = inst.getLongValue(
-				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue
+				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue,
+				(int)((org.meshpoint.anode.js.JSValue)args[1]).longValue
 			);
 			break;
-		case 3: /* getStringValue */
+		case 4: /* getStringValue */
 			result = inst.getStringValue(
-				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue
+				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue,
+				(int)((org.meshpoint.anode.js.JSValue)args[1]).longValue
 			);
 			break;
-		case 4: /* moveToFirst */
-			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.moveToFirst());
+		case 5: /* moveToFirst */
+			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.moveToFirst(
+				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue
+			));
 			break;
-		case 5: /* moveToNext */
-			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.moveToNext());
+		case 6: /* moveToNext */
+			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.moveToNext(
+				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue
+			));
 			break;
-		case 6: /* prepare */
+		case 7: /* prepare */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.prepare(
 				(String)args[0],
 				(String)args[1]

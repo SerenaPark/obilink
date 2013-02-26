@@ -12,10 +12,11 @@ public abstract class MediaRetriever extends Base {
     
     //public abstract int prepare(String mediaType);
     public abstract int prepare(String mediaType, String arg1);
-    public abstract int moveToFirst();
-    public abstract int moveToNext();
-    public abstract int getColumnIndex(String columnName);
-    public abstract String getBitmapValue(int columnIndex);
-    public abstract String getLongValue(int columnIndex);
-    public abstract String getStringValue(int columnIndex);  
+    public abstract void close(int cursorHandle);
+    public abstract int moveToFirst(int cursorHandle);
+    public abstract int moveToNext(int cursorHandle);
+    public abstract int getColumnIndex(int cursorHandle, String columnName);
+    public abstract String getBitmapValue(int cursorHandle, int columnIndex);
+    public abstract String getLongValue(int cursorHandle, int columnIndex);
+    public abstract String getStringValue(int cursorHandle, int columnIndex);  
 }

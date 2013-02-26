@@ -1,10 +1,10 @@
 package org.obilink.impl;
 
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
 
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
-
 import org.meshpoint.anode.AndroidContext;
 
 import org.obilink.api.MediaRetriever;
@@ -22,24 +22,20 @@ public class MediaRetrieverImpl extends MediaRetriever implements IModule {
 	final String TAG = "MediaRetrieverImpl";
 	
 	ContentResolver mContentResolver;
-	Cursor mCursor;
+	HashMap<Integer, Cursor> mCursorMap = new HashMap<Integer, Cursor>();
 	
 	@Override
 	public Object startModule(IModuleContext ctx) {
-		// TODO Auto-generated method stub
 		mContentResolver = ((AndroidContext)ctx).getAndroidContext().getContentResolver();
 		return this;
 	}
 
 	@Override
 	public void stopModule() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public int prepare(String mediaType, String arg1) {
-		// TODO Auto-generated method stub
 		Uri uri;
 		String selection;
 
@@ -53,38 +49,47 @@ public class MediaRetrieverImpl extends MediaRetriever implements IModule {
 			return 0;
 		}
 		
-		//TODO
-		// Need to close mCursor?
-		
-		mCursor = mContentResolver.query(uri, null, selection, null, null);
-		if (mCursor == null)
+		Cursor c = mContentResolver.query(uri, null, selection, null, null);
+		if (c == null)
 			return 0;
 		
-		return 1;
+		int cursorHandle = c.hashCode();
+		mCursorMap.put(cursorHandle, c);
+		
+		return cursorHandle;
 	}
 
 	@Override
-	public int moveToFirst() {
-		// TODO Auto-generated method stub
-		return mCursor.moveToFirst() ? 1: 0;
+	public void close(int cursorHandle) {
+		Cursor c = mCursorMap.get(cursorHandle);
+		if (c != null) {
+			mCursorMap.remove(c.hashCode());
+			c.close();
+		}
+	}
+	
+	@Override
+	public int moveToFirst(int cursorHandle) {
+		Cursor c = mCursorMap.get(cursorHandle);
+		return c.moveToFirst() ? 1: 0;
 	}
 
 	@Override
-	public int moveToNext() {
-		// TODO Auto-generated method stub
-		return mCursor.moveToNext() ? 1 : 0;
+	public int moveToNext(int cursorHandle) {
+		Cursor c = mCursorMap.get(cursorHandle);
+		return c.moveToNext() ? 1 : 0;
 	}
 
 	@Override
-	public int getColumnIndex(String columnName) {
-		// TODO Auto-generated method stub
-		return mCursor.getColumnIndex(columnName);
+	public int getColumnIndex(int cursorHandle, String columnName) {
+		Cursor c = mCursorMap.get(cursorHandle);
+		return c.getColumnIndex(columnName);
 	}
 
 	@Override
-	public String getBitmapValue(int columnIndex) {
-		// TODO Auto-generated method stub
-		String path = mCursor.getString(columnIndex);
+	public String getBitmapValue(int cursorHandle, int columnIndex) {
+		Cursor c = mCursorMap.get(cursorHandle);
+		String path = c.getString(columnIndex);
 		
 		Bitmap bm = BitmapFactory.decodeFile(path);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -96,15 +101,15 @@ public class MediaRetrieverImpl extends MediaRetriever implements IModule {
 	}
 
 	@Override
-	public String getLongValue(int columnIndex) {
-		// TODO Auto-generated method stub
-		return Long.toString(mCursor.getLong(columnIndex));
+	public String getLongValue(int cursorHandle, int columnIndex) {
+		Cursor c = mCursorMap.get(cursorHandle);
+		return Long.toString(c.getLong(columnIndex));
 	}
 
 	@Override
-	public String getStringValue(int columnIndex) {
-		// TODO Auto-generated method stub
-		return mCursor.getString(columnIndex);
+	public String getStringValue(int cursorHandle, int columnIndex) {
+		Cursor c = mCursorMap.get(cursorHandle);
+		return c.getString(columnIndex);
 	}
 
 }
