@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
 var bridge = require('bridge');
-var mr = bridge.load('com.koccalink.anode.module.MediaRetriever', this);
+var mr = bridge.load('org.obilink.impl.MediaRetrieverImpl', this);
 
 //var fs = require('fs');
 //var path = require('path');
@@ -23,19 +23,26 @@ MEDIA_COLUMN_TITLE = 'title';
 MEDIA_COLUMN_ALBUM_ID = 'album_id';
 MEDIA_COLUMN_ALBUM_ART = 'album_art';
 
+
 app.configure(function() {
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
   app.use(express.session({
-  	secret: "secret",
-  	store: new express.session.MemoryStore
+    secret: "secret",
+    store: new express.session.MemoryStore
   }));
   app.use(express.static(__dirname + '/web'));
+  //app.use(express.static(__dirname + '/contents')); 
+  app.use(express.static(__dirname));
   app.use(express.directory(__dirname + '/web'));
   app.use(app.router);
   app.use(express.logger('dev'));
 });
+
+app.get('/', function(req, res){
+});
+
 
 function comp(a, b){
   if (a.name < b.name)
@@ -48,49 +55,50 @@ function comp(a, b){
 app.get('/getAudioList', function(req,res) {
   var rtn = [];
   var returnJson;
+  var audioCursor;
 
-  if (mr.prepare(MEIDA_TYPE_AUDIO)) {
-    var nameIndex = mr.getColumnIndex(MEDIA_COLUMN_TITLE);
-    var pathIndex = mr.getColumnIndex(MEDIA_COLUMN_PATH);
-    var albumIdIndex = mr.getColumnIndex(MEDIA_COLUMN_ALBUM_ID);
+  if ((audioCursor = mr.prepare(MEIDA_TYPE_AUDIO))) {
+    var nameIndex = mr.getColumnIndex(audioCursor, MEDIA_COLUMN_TITLE);
+    var pathIndex = mr.getColumnIndex(audioCursor, MEDIA_COLUMN_PATH);
+    var albumIdIndex = mr.getColumnIndex(audioCursor, MEDIA_COLUMN_ALBUM_ID);
 
-    if (mr.moveToFirst()) {      
-      var name;
+    if (mr.moveToFirst(audioCursor)) {      
       var path;
+      var name;
+      var albumId;
+      var albumArt;
 
       do {
-        name = mr.getStringValue(nameIndex);
-        path = mr.getStringValue(pathIndex);
-        albumId = mr.getStringValue(albumIdIndex);
+        path = mr.getStringValue(audioCursor, pathIndex);
+        name = mr.getStringValue(audioCursor, nameIndex);
+        albumId = mr.getStringValue(audioCursor, albumIdIndex);
+        albumArt = ""; //default album art
 
-        var item = { 'path': path, 'name': name, 'type': 'a', 'albumId': albumId };
+        var albumCursor;
+        if ((albumCurosr = mr.prepare(MEIDA_TYPE_AUDIO_ALBUM, albumId))) {
+          var albumArtIndex = mr.getColumnIndex(albumCurosr, MEDIA_COLUMN_ALBUM_ART);
+
+          if (mr.moveToFirst(albumCurosr)) {      
+              albumArt = mr.getStringValue(albumCurosr, albumArtIndex);
+          }
+
+          mr.close(albumCursor);
+        }
+
+        // FIXME: Album art doesn't have file extension...so
+        albumArt = "./img/test5.png";
+        var item = { 'path': path, 'name': name, 'type': 'a', 'thumb': albumArt };
         rtn.push(item);
-      } while (mr.moveToNext());
+
+      } while (mr.moveToNext(audioCursor));      
     }
+
+    mr.close(audioCursor);
   }
 
   returnJson = JSON.stringify(rtn.sort(comp));
   if (returnJson.length > 0)
     res.end(returnJson);
-});
-
-
-app.post('/getAudioThumbnail', function(req, res) {
-  var reqAlbumId = req.body.path;
-  var reqAudioId = req.body.selectedAudioId;
-
-  if (mr.prepare(MEIDA_TYPE_AUDIO_ALBUM, reqAlbumId)) {
-    var albumArtIndex = mr.getColumnIndex(MEDIA_COLUMN_ALBUM_ART);
-
-    if (mr.moveToFirst()) {      
-        albumArt = mr.getBitmapValue(albumArtIndex);
-        var item = new Object();
-        item.selectedAudioId = reqAudioId;
-        item.picture = albumArt;
-
-        res.end(JSON.stringify(item));
-    }
-  }
 });
 
 
