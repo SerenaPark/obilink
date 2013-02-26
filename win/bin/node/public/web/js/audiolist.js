@@ -54,7 +54,13 @@
 				console.log("prev");
 			});
 			$("#footer .wrap .next").click(function(){
-				console.log("next");
+				var t = $("#slide li").next();
+				t.nextSibling;
+				//for(i=0; i<li.length; i++){
+				//	li[i].trigger("play");
+				//}				
+				console.log(t);
+				//console.log("next");
 			});
 
 			$("#footer .wrap .play").click(function(){
@@ -143,8 +149,9 @@
 				$("#footer .wrap .title > p").text("Artist");
 
 				//set time
-				//$("footer .wrap .time_start").attr($("player").trigger("currenttime"));
-				//$("footer .wrap .time_end").attr($("player").trigger("duration"));
+				//$("#footer .wrap .time_start").text($(this).attr("data_path").currentTime);
+				//$("#footer .wrap .time_start").text($("#player").currentTime);
+				//$("#footer .wrap .time_end").attr($("#player").trigger("duration"));
 			});	
 		};
 
@@ -178,8 +185,10 @@
 			$("#footer .wrap .title > h3").text(data[0].name);
 			$("#footer .wrap .title > p").text("Artist");
 
-			//$("footer .wrap .time_start").();
-			//$("footer .wrap .time_end").();
+			//set time
+			//$("#footer .wrap .time_start").text(data[0].currentTime);
+			//$("#footer .wrap .time_start").attr("src",data[0].currentTime);
+			//$("#footer .wrap .time_end").text(data[0].duration);
 
 			this.registEventHandleOnSlideCtrl();
 
