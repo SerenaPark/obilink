@@ -45,6 +45,12 @@ public class MediaRetrieverImpl extends MediaRetriever implements IModule {
 		} else if (mediaType.equals("album")) {
 				uri = android.provider.MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
 				selection = MediaStore.Audio.Albums._ID + " = " + arg1;
+		} else if (mediaType.equals("video")) {
+			uri = android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+			selection = null;
+		} else if (mediaType.equals("video.thumbnails")) {
+			uri = android.provider.MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI;
+			selection = MediaStore.Video.Thumbnails.VIDEO_ID + " = " + arg1;
 		} else {
 			return 0;
 		}
