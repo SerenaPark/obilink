@@ -25,6 +25,7 @@ MEDIA_COLUMN_TITLE = 'title';
 MEDIA_COLUMN_ALBUM_ID = 'album_id';
 MEDIA_COLUMN_ALBUM_ART = 'album_art';
 MEDIA_COLUMN_THUMBNAILS_DATA = '_data';
+MEDIA_COLUMN_MINI_THUMB_MAGIC = 'mini_thumb_magic';
 
 
 app.configure(function() {
@@ -46,7 +47,7 @@ app.configure(function() {
 app.get('/', function(req, res){
 });
 
-app.get('/albumart/*', function(req, res) {
+app.get('/thumb/audio/*', function(req, res) {
   var paramStr = req.params[0].toString();
   var realPath = paramStr.substring(0, paramStr.lastIndexOf('.'));
 
@@ -59,7 +60,7 @@ app.get('/albumart/*', function(req, res) {
   });
 });
 
-app.get('/mythumb/*', function(req, res) {
+app.get('/thumb/video/*', function(req, res) {
   var paramStr = req.params[0].toString();
   var realPath = paramStr;
 
@@ -70,6 +71,30 @@ app.get('/mythumb/*', function(req, res) {
   file.on('open', function() {
     file.pipe(res);
   });
+});
+
+app.get('/thumb/create/*', function(req, res) {
+  var paramStr = req.params[0].toString();
+  var filePath = decodeURI(paramStr);
+  var thumbData;
+  var buf;
+
+  var file = fs.createReadStream('img/test2.png');
+  file.on('open', function() {
+    file.pipe(res);
+  });
+
+  /*TODO: NOT WORKING YET
+  res.setHeader('Content-Type', 'image/bmp');
+  res.setHeader('Content-Transfer-Encoding', 'base64');
+  res.statusCode = 200;
+
+  thumbData = mr.createVideoThumbnail(filePath);
+  buf = new Buffer(thumbData, 'base64');
+
+  res.write(buf);
+  res.end();
+  */
 });
 
 function comp(a, b){
@@ -113,7 +138,7 @@ app.get('/getAudioList', function(req,res) {
           mr.close(albumCursor);
         }
 
-        albumArt = '/albumart' + albumArt + '.bmp';
+        albumArt = '/thumb/audio' + albumArt + '.bmp';
         var item = { 'path': path, 'name': name, 'type': 'a', 'thumb': albumArt };
         rtn.push(item);
 
@@ -163,14 +188,14 @@ app.get('/getVideoList', function(req,res) {
           mr.close(thumbnailCursor);
         }
 
-        console.log('==========================');
-        if (thumbnail == "")
-          console.log('thumbnail is NULL');
+        if (!thumbnail)
+          //thumbnail = '/thumb/create' + path;
+          thumbnail = 'img/test2.png';
         else
-          console.log(thumbnail);
-        console.log('==========================');
+          thumbnail = '/thumb/video' + thumbnail;
 
-        thumbnail = '/mythumb' + thumbnail;
+        thumbnail = encodeURI(thumbnail);
+
         var item = { 'path': path, 'name': name, 'type': 'v', 'thumb': thumbnail };
         rtn.push(item);
 

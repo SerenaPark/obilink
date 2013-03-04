@@ -1,6 +1,7 @@
 package org.obilink.impl;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 import org.meshpoint.anode.module.IModule;
@@ -13,6 +14,7 @@ import android.content.ContentResolver;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Base64;
@@ -50,6 +52,7 @@ public class MediaRetrieverImpl extends MediaRetriever implements IModule {
 			selection = null;
 		} else if (mediaType.equals("video.thumbnails")) {
 			uri = android.provider.MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI;
+			//selection = MediaStore.Video.Thumbnails.VIDEO_ID + " = " + arg1 + " and " + MediaStore.Video.Thumbnails.KIND + " = " + MediaStore.Video.Thumbnails.MICRO_KIND ;
 			selection = MediaStore.Video.Thumbnails.VIDEO_ID + " = " + arg1;
 		} else {
 			return 0;
@@ -118,4 +121,18 @@ public class MediaRetrieverImpl extends MediaRetriever implements IModule {
 		return c.getString(columnIndex);
 	}
 
+	@Override
+	public String createVideoThumbnail(String filePath) {
+		String encodedImage = "";
+		
+		Bitmap bm = ThumbnailUtils.createVideoThumbnail(filePath, MediaStore.Video.Thumbnails.MINI_KIND);
+		if (bm != null) {
+			int bmSize = bm.getHeight() * bm.getRowBytes();
+			ByteBuffer bbuf = ByteBuffer.allocate(bmSize);
+			bm.copyPixelsToBuffer(bbuf);
+			encodedImage = Base64.encodeToString(bbuf.array(), Base64.DEFAULT);
+		}
+		
+		return encodedImage;		
+	}
 }

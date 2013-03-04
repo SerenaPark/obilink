@@ -16,41 +16,46 @@ public final class Org_obilink_api_MediaRetriever {
 				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue
 			);
 			break;
-		case 1: /* getBitmapValue */
+		case 1: /* createVideoThumbnail */
+			result = inst.createVideoThumbnail(
+				(String)args[0]
+			);
+			break;
+		case 2: /* getBitmapValue */
 			result = inst.getBitmapValue(
 				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue,
 				(int)((org.meshpoint.anode.js.JSValue)args[1]).longValue
 			);
 			break;
-		case 2: /* getColumnIndex */
+		case 3: /* getColumnIndex */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.getColumnIndex(
 				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue,
 				(String)args[1]
 			));
 			break;
-		case 3: /* getLongValue */
+		case 4: /* getLongValue */
 			result = inst.getLongValue(
 				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue,
 				(int)((org.meshpoint.anode.js.JSValue)args[1]).longValue
 			);
 			break;
-		case 4: /* getStringValue */
+		case 5: /* getStringValue */
 			result = inst.getStringValue(
 				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue,
 				(int)((org.meshpoint.anode.js.JSValue)args[1]).longValue
 			);
 			break;
-		case 5: /* moveToFirst */
+		case 6: /* moveToFirst */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.moveToFirst(
 				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue
 			));
 			break;
-		case 6: /* moveToNext */
+		case 7: /* moveToNext */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.moveToNext(
 				(int)((org.meshpoint.anode.js.JSValue)args[0]).longValue
 			));
 			break;
-		case 7: /* prepare */
+		case 8: /* prepare */
 			result = org.meshpoint.anode.js.JSValue.asJSNumber((long)inst.prepare(
 				(String)args[0],
 				(String)args[1]
