@@ -73,28 +73,30 @@ app.get('/thumb/video/*', function(req, res) {
   });
 });
 
-app.get('/thumb/create/*', function(req, res) {
+app.get('/audio/*', function(req, res){
   var paramStr = req.params[0].toString();
-  var filePath = decodeURI(paramStr);
-  var thumbData;
-  var buf;
+  var realPath = paramStr;
 
-  var file = fs.createReadStream('img/test2.png');
+  res.setHeader('Content-Type', 'audio/mpeg');
+  res.statusCode = 200;
+
+  var file = fs.createReadStream(realPath);
   file.on('open', function() {
     file.pipe(res);
   });
+});
 
-  /*TODO: NOT WORKING YET
-  res.setHeader('Content-Type', 'image/bmp');
-  res.setHeader('Content-Transfer-Encoding', 'base64');
+app.get('/video/*', function(req, res){
+  var paramStr = req.params[0].toString();
+  var realPath = paramStr;
+
+  res.setHeader('Content-Type', 'video/mp4');
   res.statusCode = 200;
 
-  thumbData = mr.createVideoThumbnail(filePath);
-  buf = new Buffer(thumbData, 'base64');
-
-  res.write(buf);
-  res.end();
-  */
+  var file = fs.createReadStream(realPath);
+  file.on('open', function() {
+    file.pipe(res);
+  });
 });
 
 function comp(a, b){
@@ -139,7 +141,7 @@ app.get('/getAudioList', function(req,res) {
         }
 
         albumArt = '/thumb/audio' + albumArt + '.bmp';
-        var item = { 'path': path, 'name': name, 'type': 'a', 'thumb': albumArt };
+        var item = { 'path': '/audio' + path, 'name': name, 'type': 'a', 'thumb': albumArt };
         rtn.push(item);
 
       } while (mr.moveToNext(audioCursor));      
@@ -173,8 +175,6 @@ app.get('/getVideoList', function(req,res) {
         path = mr.getStringValue(videoCursor, pathIndex);
         name = mr.getStringValue(videoCursor, nameIndex);
         videoId = mr.getStringValue(videoCursor, idIndex);
-        thumbnail = "";
-
 
         var thumbnailCursor;
         if ((thumbnailCursor = mr.prepare(MEIDA_TYPE_VIDEO_THUMBNAILS, videoId))) {
@@ -182,21 +182,14 @@ app.get('/getVideoList', function(req,res) {
 
           if (mr.moveToFirst(thumbnailCursor)) {      
               thumbnail = mr.getStringValue(thumbnailCursor, thumbnailIndex);
-              //console.log(thumbnail);
           }
 
           mr.close(thumbnailCursor);
         }
 
-        if (!thumbnail)
-          //thumbnail = '/thumb/create' + path;
-          thumbnail = 'img/test2.png';
-        else
-          thumbnail = '/thumb/video' + thumbnail;
+        thumbnail = '/thumb/video' + thumbnail;
 
-        thumbnail = encodeURI(thumbnail);
-
-        var item = { 'path': path, 'name': name, 'type': 'v', 'thumb': thumbnail };
+        var item = { 'path': '/video' + path, 'name': name, 'type': 'v', 'thumb': thumbnail };
         rtn.push(item);
 
       } while (mr.moveToNext(videoCursor));      
