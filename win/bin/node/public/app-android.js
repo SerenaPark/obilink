@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var bridge = require('bridge');
 var mr = bridge.load('org.obilink.impl.MediaRetrieverImpl', this);
+var fs = require('fs');
 
 //var fs = require('fs');
 //var path = require('path');
@@ -15,6 +16,7 @@ var mr = bridge.load('org.obilink.impl.MediaRetrieverImpl', this);
 MEIDA_TYPE_AUDIO = 'audio';
 MEIDA_TYPE_AUDIO_ALBUM = 'album';
 MEIDA_TYPE_VIDEO = 'video';
+MEIDA_TYPE_VIDEO_THUMBNAILS = 'video.thumbnails';
 
 MEDIA_COLUMN_ID = '_id';
 MEDIA_COLUMN_PATH = '_data';
@@ -22,6 +24,8 @@ MEDIA_COLUMN_DISPLAY_NAME = '_display_name';
 MEDIA_COLUMN_TITLE = 'title';
 MEDIA_COLUMN_ALBUM_ID = 'album_id';
 MEDIA_COLUMN_ALBUM_ART = 'album_art';
+MEDIA_COLUMN_THUMBNAILS_DATA = '_data';
+MEDIA_COLUMN_MINI_THUMB_MAGIC = 'mini_thumb_magic';
 
 
 app.configure(function() {
@@ -43,6 +47,55 @@ app.configure(function() {
 app.get('/', function(req, res){
 });
 
+app.get('/thumb/audio/*', function(req, res) {
+  var paramStr = req.params[0].toString();
+  var realPath = paramStr.substring(0, paramStr.lastIndexOf('.'));
+
+  res.setHeader('Content-Type', 'image/bmp');
+  res.statusCode = 200;
+
+  var file = fs.createReadStream(realPath);
+  file.on('open', function() {
+    file.pipe(res);
+  });
+});
+
+app.get('/thumb/video/*', function(req, res) {
+  var paramStr = req.params[0].toString();
+  var realPath = paramStr;
+
+  res.setHeader('Content-Type', 'image/jpeg');
+  res.statusCode = 200;
+
+  var file = fs.createReadStream(realPath);
+  file.on('open', function() {
+    file.pipe(res);
+  });
+});
+
+app.get('/thumb/create/*', function(req, res) {
+  var paramStr = req.params[0].toString();
+  var filePath = decodeURI(paramStr);
+  var thumbData;
+  var buf;
+
+  var file = fs.createReadStream('img/test2.png');
+  file.on('open', function() {
+    file.pipe(res);
+  });
+
+  /*TODO: NOT WORKING YET
+  res.setHeader('Content-Type', 'image/bmp');
+  res.setHeader('Content-Transfer-Encoding', 'base64');
+  res.statusCode = 200;
+
+  thumbData = mr.createVideoThumbnail(filePath);
+  buf = new Buffer(thumbData, 'base64');
+
+  res.write(buf);
+  res.end();
+  */
+});
 
 function comp(a, b){
   if (a.name < b.name)
@@ -85,8 +138,7 @@ app.get('/getAudioList', function(req,res) {
           mr.close(albumCursor);
         }
 
-        // FIXME: Album art doesn't have file extension...so
-        albumArt = "./img/test5.png";
+        albumArt = '/thumb/audio' + albumArt + '.bmp';
         var item = { 'path': path, 'name': name, 'type': 'a', 'thumb': albumArt };
         rtn.push(item);
 
@@ -101,5 +153,61 @@ app.get('/getAudioList', function(req,res) {
     res.end(returnJson);
 });
 
+app.get('/getVideoList', function(req,res) {
+  var rtn = [];
+  var returnJson;
+  var videoCursor;
+
+  if ((videoCursor = mr.prepare(MEIDA_TYPE_VIDEO))) {
+    var nameIndex = mr.getColumnIndex(videoCursor, MEDIA_COLUMN_TITLE);
+    var pathIndex = mr.getColumnIndex(videoCursor, MEDIA_COLUMN_PATH);
+    var idIndex = mr.getColumnIndex(videoCursor, MEDIA_COLUMN_ID);
+
+    if (mr.moveToFirst(videoCursor)) {      
+      var path;
+      var name;
+      var videoId;
+      var thumbnail;
+
+      do {
+        path = mr.getStringValue(videoCursor, pathIndex);
+        name = mr.getStringValue(videoCursor, nameIndex);
+        videoId = mr.getStringValue(videoCursor, idIndex);
+        thumbnail = "";
+
+
+        var thumbnailCursor;
+        if ((thumbnailCursor = mr.prepare(MEIDA_TYPE_VIDEO_THUMBNAILS, videoId))) {
+          var thumbnailIndex = mr.getColumnIndex(thumbnailCursor, MEDIA_COLUMN_PATH);
+
+          if (mr.moveToFirst(thumbnailCursor)) {      
+              thumbnail = mr.getStringValue(thumbnailCursor, thumbnailIndex);
+              //console.log(thumbnail);
+          }
+
+          mr.close(thumbnailCursor);
+        }
+
+        if (!thumbnail)
+          //thumbnail = '/thumb/create' + path;
+          thumbnail = 'img/test2.png';
+        else
+          thumbnail = '/thumb/video' + thumbnail;
+
+        thumbnail = encodeURI(thumbnail);
+
+        var item = { 'path': path, 'name': name, 'type': 'v', 'thumb': thumbnail };
+        rtn.push(item);
+
+      } while (mr.moveToNext(videoCursor));      
+    }
+
+    mr.close(videoCursor);
+  }
+
+  returnJson = JSON.stringify(rtn.sort(comp));
+  if (returnJson.length > 0)
+    res.end(returnJson);
+});
 
 app.listen(8888);
