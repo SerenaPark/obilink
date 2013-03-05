@@ -86,7 +86,7 @@ function getList(dir, fileTypeExts, type, __vd__NameWithEndSlash){
 						rtnItem = { "path": filepath.split("\\").join("/"), 
 									"name": items[i], 
 									"type": type,
-								    "thumb" : filepath.split("\\").join("/") + ".jpg" };
+								    "thumb" : "getVideoThumbnail/" + filepath.split("\\").join("/") + ".jpg" };
 					}
 					rtn.push(rtnItem);
 				}
