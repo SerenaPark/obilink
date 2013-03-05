@@ -7,8 +7,8 @@
 /* File     : mainwindow.cpp
  * Author   : Edgar Seo, Ted Kim
  * Company  : OBIGO KOREA
- * Version  : 2.0.2
- * Date     : 2013-01-30
+ * Version  : 2.0.5
+ * Date     : 2013-02-18
  */
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -16,13 +16,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->lb_qrcode->setStyleSheet("background-image: url(:/images/images/qr.png);");
 
     connect(&m_serverProc, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int, QProcess::ExitStatus)));
 
     // fix window size & disable cursor at border of window
     Qt::WindowFlags flags = Qt::Window | Qt::MSWindowsFixedSizeDialogHint;
     setWindowFlags(flags);
-    setFixedSize(358, 544);
+    setFixedSize(360, 640);
+    statusBar()->hide();
 
     initialize();
 }
@@ -39,8 +41,15 @@ void MainWindow::initialize()
 {
     CXmlManager::instance()->loadXML();
 
-    ui->cb_dropbox->setChecked(CXmlManager::instance()->isDropboxShareMode());
     ui->btn_stopshare->setEnabled(false);
+
+    if (CXmlManager::instance()->isDropboxShareMode()) {
+        if (CXmlManager::instance()->isDropboxInstalled()) {
+            ui->cb_dropbox->setChecked(true);
+        } else {
+            CXmlManager::instance()->updateDropbox(false);
+        }
+    }
 
     updateShareAddress();
     updateListwidget();
@@ -86,7 +95,8 @@ void MainWindow::displayQRCode(QString addr)
     QString qrcodePath = dir.currentPath() + "\\extbin\\qrcodepic.png";
 
     QProcess::execute(command + " -o " + arg1 + " -s 5 -l H " + addr);
-    ui->lb_qrcode->setPixmap(QPixmap::QPixmap(qrcodePath).scaled(100, 100, Qt::KeepAspectRatio));
+    ui->lb_qrcode->setMargin(2);
+    ui->lb_qrcode->setPixmap(QPixmap::QPixmap(qrcodePath).scaled(106, 106, Qt::KeepAspectRatio));
 
     return;
 }
@@ -112,15 +122,11 @@ QString MainWindow::getIPAddress()
 
 void MainWindow::on_btn_add_clicked()
 {
-    //QFileDialog::DontUseNativeDialog | QFileDialog::ReadOnly
-    //| QFileDialog::ShowDirsOnly
-
     QDir dirlist;
     QString dir = QFileDialog::getExistingDirectory(this,
                         tr("Choose Share Directory"),
                         "/",
-                        QFileDialog::DontResolveSymlinks
-                        | QFileDialog::ReadOnly);
+                        QFileDialog::ReadOnly | QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
 
     if (dir.length() <= 0)
@@ -168,6 +174,9 @@ void MainWindow::on_btn_startshare_clicked()
     m_serverProc.setStandardErrorFile(dir.currentPath() + "\\error.log");
     m_serverProc.start(command + " " + arg1);
 
+    ui->btn_startshare->setStyleSheet("background-image: url(:/images/images/btn_start_p.png);""border-style: outset;");
+    ui->btn_stopshare->setStyleSheet("#btn_stopshare{background-image: url(:/images/images/btn_stop_n.png);border-style: outset;}"
+                                     "#btn_stopshare:pressed{background-image: url(:/images/images/btn_stop_p.png);border-style: outset;}");
     return;
 }
 
@@ -181,6 +190,10 @@ void MainWindow::on_btn_stopshare_clicked()
     m_serverProc.kill();      // return CrashExit
     //m_serverProc.close();       // return CrashExit
     //m_serverProc.terminate();
+
+    ui->btn_startshare->setStyleSheet("#btn_startshare{background-image: url(:/images/images/btn_start_n.png);border-style: outset;}"
+                                      "#btn_startshare:pressed{background-image: url(:/images/images/btn_start_p.png);;border-style: outset;}");
+    ui->btn_stopshare->setStyleSheet("background-image: url(:/images/images/btn_stop_p.png);""border-style: outset;");
     return;
 }
 
@@ -189,7 +202,11 @@ void MainWindow::on_cb_dropbox_clicked()
     if (ui->cb_dropbox == NULL || ui == NULL)
         return;
 
-    CXmlManager::instance()->updateDropbox(ui->cb_dropbox->checkState());
+    if (CXmlManager::instance()->isDropboxInstalled())
+        CXmlManager::instance()->updateDropbox(ui->cb_dropbox->checkState());
+    else
+        ui->cb_dropbox->setChecked(false);
+
     return;
 
 }
