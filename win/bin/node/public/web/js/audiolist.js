@@ -1,5 +1,19 @@
 ( function(){
 	var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+	function formatSecondsAsTime(secs){
+		var hr  = Math.floor(secs / 3600);
+		var min = Math.floor((secs - (hr * 3600))/60);
+		var sec = Math.floor(secs - (hr * 3600) -  (min * 60));
+
+		if (min < 10){ 
+			min = "0" + min; 
+		}
+		if (sec < 10){ 
+			sec  = "0" + sec;
+		}
+
+		return min + ':' + sec;
+	};
 
 	AudioList = (function(){
 		function AudioList(root){
@@ -74,8 +88,16 @@
 					$(this).text("d");
 					$("#player").trigger("play");
 				}
-			});	
-		};
+			});
+
+			$("#player").bind('timeupdate', __bind(function(){
+				var audio = document.getElementById("player");
+				$("#footer .wrap .time_start").text(formatSecondsAsTime(audio.currentTime));
+				var a = $('.time_control input');
+				$('.time_control input').val((10*audio.currentTime/audio.duration).toFixed(2).toString()).trigger('change');
+				//$('.time_control input').change((10*audio.currentTime/audio.duration).toFixed(1).toString());
+			}, this));	
+		};		
 
 		AudioList.prototype.scrollset = function(){
 			this.iscroll = new iScroll('slide', {
@@ -149,10 +171,20 @@
 				$("#footer .wrap .title > p").text("Artist");
 
 				//set time
+				var audio = document.getElementById("player");
+				audio.addEventListener("loadedmetadata", function(){
+					$("#footer .wrap .time_end").text(formatSecondsAsTime(this.duration));
+				});
+				//$("#footer .wrap .time_end").text(formatSecondsAsTime(audio.duration));
 				//$("#footer .wrap .time_start").text($(this).attr("data_path").currentTime);
 				//$("#footer .wrap .time_start").text($("#player").currentTime);
 				//$("#footer .wrap .time_end").attr($("#player").trigger("duration"));
 			});	
+		};
+
+		AudioList.prototype.onTimeSlideMouseUp = function(position){
+			var audio = document.getElementById("player");
+			audio.currentTime = audio.duration*position/10;
 		};
 
 		AudioList.prototype.refreshScroll = function(){
@@ -167,7 +199,7 @@
 				$("#slide ul").width(100+"%");		
 			}
 			this.iscroll.refresh();
-			$('.time_control input').slideControl();
+			$('.time_control input').slideControl(null,this.onTimeSlideMouseUp);
 		};
 
 		AudioList.prototype.onReadAudioList = function(data){
@@ -184,11 +216,11 @@
 			//set footer title
 			$("#footer .wrap .title > h3").text(data[0].name);
 			$("#footer .wrap .title > p").text("Artist");
-
 			//set time
-			//$("#footer .wrap .time_start").text(data[0].currentTime);
-			//$("#footer .wrap .time_start").attr("src",data[0].currentTime);
-			//$("#footer .wrap .time_end").text(data[0].duration);
+			var audio = document.getElementById("player");
+			audio.addEventListener("loadedmetadata", function(){
+				$("#footer .wrap .time_end").text(formatSecondsAsTime(this.duration));
+			});
 
 			this.registEventHandleOnSlideCtrl();
 
