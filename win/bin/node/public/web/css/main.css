@@ -8,12 +8,12 @@
 #main ul li {width:20%; cursor:pointer; float:left; height:100%; overflow:hidden; position:relative; z-index:1;}
 #main ul li:active {opacity:0.6;}
 #main ul li b {display:block; width:96%; height:96%; position:absolute; top:2%; left:2%;}
-#main ul li.dropbox b{background:url(../img/bg_dropbox.png) no-repeat left top; background-size:cover;}
+#main ul li.dropbox b{background:url(../img/bg_dropbox.jpg) no-repeat left top; background-size:cover;}
 #main ul li.dropbox span {display:block; position:absolute; left:50%; top:50%; width:117px; height:106px; margin:60px 0 0 -58px; background:url(../img/box.png) no-repeat 50% 50%; background-size:117px 106px;}
 #main ul li.nscreen h1 {color:rgba(255,255,255,0.15); font-size:72px; line-height:72px; height:72px; margin-top:-32px; letter-spacing:0;}
-#main ul li.audio b{background:url(../img/bg_audio.png) no-repeat left top; background-size:cover;}
-#main ul li.video b{background:url(../img/bg_video.png) no-repeat left top; background-size:cover;}
-#main ul li.apps b{background:url(../img/bg_apps.png) no-repeat left top; background-size:cover;}
+#main ul li.audio b{background:url(../img/bg_audio.jpg) no-repeat left top; background-size:cover;}
+#main ul li.video b{background:url(../img/bg_video.jpg) no-repeat left top; background-size:cover;}
+#main ul li.apps b{background:url(../img/bg_apps.jpg) no-repeat left top; background-size:cover;}
 #main ul li h1 {letter-spacing:-1px; text-align:center; font-size:48px; text-shadow:1px 1px 2px rgba(0,0,0,0.6); line-height:58px; height:58px; margin-top:-29px; color:rgba(255,255,255,1); position:absolute; left:0; width:100%; top:50%;}
 #bg {position:absolute; left:0; top:0; width:100%; height:100%; overflow:hidden; opacity:0.2; z-index:-1;} /* -webkit-filter: blur(5px); */
 #menu {display:none; width:100%; overflow:hidden; height:100%; position:absolute; left:0; top:0;}
@@ -25,7 +25,7 @@
 #menu ul li.on {box-shadow:0 0 15px 3px #04ffcd;}
 #menu ul li:active {box-shadow:0 0 15px 3px #04ffcd;}
 .dropbox #menu {display:block;}
-.dropbox #bg {background:url(../img/bg_dropbox_port.png) no-repeat !important; opacity:1; background-size:cover !important;} /* -webkit-filter: blur(5px); */
+.dropbox #bg {background:url(../img/bg_dropbox_port.jpg) no-repeat !important; opacity:1; background-size:cover !important;} /* -webkit-filter: blur(5px); */
 #wrap {width:100%; height:100%; position:absolute; overflow:hidden; z-index:3; display:none;}
 .wrap {width:100%; height:100%; position:relative;}
 .video #footer {}
@@ -105,7 +105,7 @@
 #main ul {height:98%; width:98%; position:absolute; top:1%; left:1%;}
 #main ul li {width:100%; float:none; height:20%;}
 #main ul li b {display:block; width:98%; height:92%; position:absolute; top:4%; left:1%;}
-#main ul li.dropbox b{background:url(../img/bg_dropbox_port.png) no-repeat left top; background-size:cover;}
+#main ul li.dropbox b{background:url(../img/bg_dropbox_port.jpg) no-repeat left top; background-size:cover;}
 #main ul li.nscreen h1 {text-align:right; padding-right:10px;}	
 #content .land {display:none;}
 #content .port {display:block;}
@@ -119,7 +119,7 @@
 #slide li h2 {padding:15px 0 0 74px; width:70%; overflow:hidden; font-size:12px; color:#aaa; white-space:nowrap; text-overflow:ellipsis;}
 #slide li h2 b {font-size:16px; color:#fff; display:inline-block; padding-right:10px;}
 #slide li span.time {position:absolute; right:44px; top:15px; font-size:16px;}
-.dropbox #bg {background:url(../img/bg_dropbox.png) no-repeat !important; opacity:1; background-size:cover !important;} /* -webkit-filter: blur(5px); */
+.dropbox #bg {background:url(../img/bg_dropbox.jpg) no-repeat !important; opacity:1; background-size:cover !important;} /* -webkit-filter: blur(5px); */
 }
 @media all and (min-width:0px) and (max-width:650px){
 #menu ul {width:460px; position:absolute; left:50%; top:50%; margin:-50px 0 0 -230px;}

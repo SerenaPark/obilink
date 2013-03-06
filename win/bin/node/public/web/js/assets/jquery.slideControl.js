@@ -1,6 +1,6 @@
 //Examples at http://nikorablin.com/slideControl
 (function($){
-	$.fn.slideControl = function(options) {
+	$.fn.slideControl = function(options, cbMouseUp) {
 		var defaults = {
 			speed: 0,
 			lowerBound: 0,
@@ -42,9 +42,15 @@
 						$(input).val(position/10);
 					}
 				});
-				$(document).mouseup(function() {
+				$(document).mouseup(function(e) {
 					e.preventDefault();
-					controller = false;
+					//controller = false;
+					if (controller){
+						position = checkBoundaries(Math.round(((e.pageX - offset.left + handleWidth/2)/containerWidth)*100));
+						$(input).val(position/10);
+						cbMouseUp(position/10);
+						controller = false;
+					}					
 				});
 			});
 			$(input).change(function() {
