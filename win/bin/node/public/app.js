@@ -13,7 +13,8 @@ var cacheDirectoryVideo = "cache/video";
 var virtualDirectoryVideo = "__vd__video";
 var virtualDirectoryVideoThumbnail = "__vd__videothumbnail";
 var virtualRedirectVideoNormal = "__vr__videonormal";
-
+var ffmpegBinPath = __dirname + "\\..\\lib\\ffmpeg\\bin";
+	
 //Set m3u8's mimetype to "application/vnd.apple.mpegurl" instead of "application/x-mpegURL".
 express.static.mime.define({'application/vnd.apple.mpegurl': ['m3u8']});
 
@@ -318,12 +319,13 @@ app.get("/"+virtualDirectoryVideoThumbnail+"/*", function(req, res){
 					priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
 					logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
 					nolog: false        // completely disable logging (optional, defaults to false)
-				})
-				.withSize('128x128')
+				});
+				proc.setFfmpegPath(ffmpegBinPath+'\\ffmpeg');
+				proc.withSize('128x128');
 				// take 2 screenshots at predefined timemarks(50% and 1.0 sec)
 				//.takeScreenshots({ count: 2, timemarks: [ '50%', '1.0' ], filename: '%f' }, thumnailPath, function(error, filenames) {
 				// take 1 screenshots at predefined timemarks
-				.takeScreenshots({ count: 1, timemarks: [ '10%' ], filename: thumnailFileName }, thumnailPath, function(error, filenames) {
+				proc.takeScreenshots({ count: 1, timemarks: [ '10%' ], filename: thumnailFileName }, thumnailPath, function(error, filenames) {
 					if(error) {
 						console.log("Screenshots: " + error);
 					}
@@ -398,7 +400,8 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 				var exec = require("child_process").exec;
 
 				//using external segmenter.exe
-				var xxxffmpeg_cmd = "cd " + outputPath + "&" + " ffmpeg -y -i " + "\"" + pathToMovie + "\""
+				var ffmpeg_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + outputPath + "&"
+								+ " " + "ffmpeg -y -i " + "\"" + pathToMovie + "\""
 								+ " " + "-f mpegts -acodec libmp3lame -ar 48000 -ab 128k -s 480x320"
 								+ " " + "-vcodec libx264 -b:v 480000 -bt 200k -subq 7 -me_range 16"
 								+ " " + "-qcomp 0.6 -qmin 10 -qmax 51 - | segmenter - 10"
@@ -407,7 +410,8 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 								+ " " + "./";  //"http://192.168.0.94:8888/";
 
 				//using internal segmenter of ffmpeg.exe
-				var ffmpeg_cmd = "cd " + outputPath + "&" + " ffmpeg -y -i " + "\"" + pathToMovie + "\""
+				var xxxffmpeg_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + outputPath + "&"
+								+ " " + "ffmpeg -y -i " + "\"" + pathToMovie + "\""
 								+ " " + "-acodec libmp3lame -ar 48000 -ab 128k -s 480x320"
 								+ " " + "-vcodec libx264 -b:v 480000 -bt 200k -subq 7 -me_range 16"
 								+ " " + "-qcomp 0.6 -qmin 10 -qmax 51"
