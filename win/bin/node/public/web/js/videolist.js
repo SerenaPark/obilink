@@ -101,7 +101,7 @@
 					else
 						innerHTML += "<li data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
 
-					innerHTML += "<img src=\"getVideoThumbnail/" + data[index].thumb + "\" alt=''> \
+					innerHTML += "<img src=\"" + data[index].thumb + "\" alt=''> \
 							<h2> \
 							<b>" + data[index].name + "</b> \
 							<span>Macklemore Ryan Lewis Featuring Wanz - The Heist</span> \
@@ -162,7 +162,7 @@
 			var innerHTML = this.getInnerHTML(data);
 			$("#slide .scroll").append(innerHTML);
 			$("#selectedTitle").text(data[0].name);
-			$("#bg").css("background-image","url(\"getVideoThumbnail/"+data[0].thumb+"\")");
+			$("#bg").css("background-image","url(\""+data[0].thumb+"\")");
 
 			//set footer title
 			$("#footer .wrap .title > h3").text(data[0].name);

@@ -18,5 +18,6 @@ public abstract class MediaRetriever extends Base {
     public abstract int getColumnIndex(int cursorHandle, String columnName);
     public abstract String getBitmapValue(int cursorHandle, int columnIndex);
     public abstract String getLongValue(int cursorHandle, int columnIndex);
-    public abstract String getStringValue(int cursorHandle, int columnIndex);  
+    public abstract String getStringValue(int cursorHandle, int columnIndex);    
+    public abstract String createVideoThumbnail(String filePath);    
 }

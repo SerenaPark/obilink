@@ -1,6 +1,14 @@
 <RCC>
     <qresource prefix="/images">
-        <file>images/background.jpg</file>
-        <file>images/dropboximg.jpg</file>
+        <file>images/bg.png</file>
+        <file>images/qr.png</file>
+        <file>images/btn_start_n.png</file>
+        <file>images/btn_start_p.png</file>
+        <file>images/btn_stop_n.png</file>
+        <file>images/btn_stop_p.png</file>
+        <file>images/btn_add_n.png</file>
+        <file>images/btn_add_p.png</file>
+        <file>images/btn_remove_n.png</file>
+        <file>images/btn_remove_p.png</file>
     </qresource>
 </RCC>
