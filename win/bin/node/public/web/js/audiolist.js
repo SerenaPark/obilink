@@ -274,7 +274,9 @@
 				audio.addEventListener("loadedmetadata", function(){
 					//set time
 					$("#footer .wrap .time_end").text(formatSecondsAsTime(this.duration));
-				});				
+				});
+
+				$('.time_control input').val("0").trigger('change');
 			});
 		};
 
