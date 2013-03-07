@@ -203,23 +203,38 @@
 		AudioList.prototype.getInnerHTML = function(data, type){
 			var innerHTML = "";
 			var index = 0;
+			var name;
+			var path;
 			for(var i=0; i<data.length/5; i++){
 				if(index == 0)
 					innerHTML += "<ul class='on'>";
 				else
 					innerHTML += "<ul>";
 				for(var j=0; j<5 && index<data.length; j++){
+					name = data[index].name.replace(/'/g, '`');
+					path = data[index].path.replace(/'/g, '`');
 					if(index == 0)
-						innerHTML += "<li class='on' data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
+						innerHTML += "<li class='on' data_title='"+ name +"' data_path='"+ path +"'>";
 					else
-						innerHTML += "<li data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
+						innerHTML += "<li data_title='"+ name +"' data_path='"+ path +"'>";
 
 					innerHTML += "<img src=" + data[index].thumb + " alt=''> \
 								<h2> \
-						            <b>" + data[index].name + "</b> \
+						            <b>" + name + "</b> \
 						        </h2> \
 								<span class='ico symbol'>e</span> \
 						        </li>";
+					// if(index == 0)
+					// 	innerHTML += "<li class='on' data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
+					// else
+					// 	innerHTML += "<li data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
+
+					// innerHTML += "<img src=" + data[index].thumb + " alt=''> \
+					// 			<h2> \
+					// 	            <b>" + data[index].name + "</b> \
+					// 	        </h2> \
+					// 			<span class='ico symbol'>e</span> \
+					// 	        </li>";
 //						            <span>Macklemore Ryan Lewis Featuring Wanz - The Heist</span> \
 //						        <span class='time'>5:12</span> \
 					index++;
@@ -246,7 +261,7 @@
 				$("#selectedTitle").text($(this).attr("data_title"));
 
 				//set audio tag source
-				$("#player").attr("src", $(this).attr("data_path"));
+				$("#player").attr("src", $(this).attr("data_path").replace("`", "'"));
 
 				//set footer play button
 				$("#footer .wrap .play").text("e");
