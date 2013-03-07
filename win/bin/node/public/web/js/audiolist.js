@@ -59,45 +59,130 @@
 		};
 
 		AudioList.prototype.registEventHandler = function(){
-
 			$("#header .back").click(function(){
 			 	$(location).attr('href', "index.html");
 			});
 
-	  		$("#footer .wrap .prev").click(function(){
-				console.log("prev");
-			});
-			$("#footer .wrap .next").click(function(){
-				var t = $("#slide li").next();
-				t.nextSibling;
-				//for(i=0; i<li.length; i++){
-				//	li[i].trigger("play");
-				//}				
-				console.log(t);
-				//console.log("next");
-			});
+	  		$("#footer .wrap .prev").click(__bind(function(){
+	  			this.playPrev();
+			}, this));
 
-			$("#footer .wrap .play").click(function(){
-				if($(this).text() == "d"){
-					//pause
-					$(this).text("e");
-					$("#player").trigger("pause");
-				}
-				else if($(this).text() == "e"){
-					//play
-					$(this).text("d");
-					$("#player").trigger("play");
-				}
-			});
+			$("#footer .wrap .next").click(__bind(function(){
+				this.playNext();
+			}, this));
+
+			$("#footer .wrap .play").click(__bind(function(){
+				this.togglePlay();	
+			}, this));
 
 			$("#player").bind('timeupdate', __bind(function(){
 				var audio = document.getElementById("player");
 				$("#footer .wrap .time_start").text(formatSecondsAsTime(audio.currentTime));
-				var a = $('.time_control input');
 				$('.time_control input').val((10*audio.currentTime/audio.duration).toFixed(2).toString()).trigger('change');
-				//$('.time_control input').change((10*audio.currentTime/audio.duration).toFixed(1).toString());
-			}, this));	
-		};		
+			}, this));
+
+			$("#player").bind('ended', __bind(function(){
+				this.playNext();
+			}, this));
+		};
+
+		AudioList.prototype.togglePlay = function(){
+			if($("#footer .wrap .play").text() == "d"){
+				//pause
+				$("#footer .wrap .play").text("e");
+				$("#player").trigger("pause");
+			}
+			else if($("#footer .wrap .play").text() == "e"){
+				//play
+				$("#footer .wrap .play").text("d");
+				$("#player").trigger("play");
+			}
+		};
+
+		AudioList.prototype.audioStatus = function(){
+			if($("#footer .wrap .play").text() == "d"){
+				return "play";
+			}
+			else if($("#footer .wrap .play").text() == "e"){
+				return "pause";
+			}
+		};
+
+		AudioList.prototype.play = function(){
+			$("#footer .wrap .play").text("d");
+			$("#player").trigger("play");
+		};
+
+		AudioList.prototype.pause = function(){
+			$("#footer .wrap .play").text("e");
+			$("#player").trigger("pause");
+		};
+
+		AudioList.prototype.playNext = function(){
+			//------pseudo function
+  			//1. stop music now playing
+  			var autoplay = false;
+  			if(this.audioStatus() == "play"){
+  				this.pause();
+  				autoplay = true;
+  			}
+  			//2. find prev music
+  			var next = $("#slide .scroll .on .on").next();
+  			//2.1 if there is no next music
+  			if(next.length <= 0){
+  				if( $("#slide .scroll .on").next().length > 0 ){
+  					//case of middle of list
+  					next = $("#slide .scroll .on").next().children().first();
+  				}else{
+  					//case of finding last music
+  					next = $("#slide .scroll ul:first-child li:first-child");
+  				}
+  			}	  					
+  			//3. select music on slide-list
+  			next.click();
+
+  			//4.Move iScroll
+  			this.iscroll.scrollToElement("#slide li.on", '400ms');
+  			this.refreshScroll();
+
+  			//5. play music
+  			if(autoplay)
+  				this.play();
+		};
+
+		AudioList.prototype.playPrev = function(){
+			//------pseudo function
+  			//1. stop music now playing
+  			var autoplay = false;
+  			if(this.audioStatus() == "play"){
+  				this.pause();
+  				autoplay = true;
+  			}
+
+  			//2. find prev music
+  			var prev = $("#slide .scroll .on .on").prev();
+  			//2.1 if there is no prev music
+  			if(prev.length <= 0){
+  				if( $("#slide .scroll .on").prev().length > 0 ){
+  					//case of middle of list
+  					prev = $("#slide .scroll .on").prev().children().last();
+  				}else{
+  					//case of finding last music
+  					prev = $("#slide .scroll ul:last-child li:last-child");
+  				}
+  			}	  					
+  			//3. select music on slide-list
+  			prev.click();
+
+  			//4.Move iScroll
+  			this.iscroll.scrollToElement("#slide li.on", '400ms');
+  			this.refreshScroll();
+
+  			//5. play music
+  			if(autoplay)
+  				this.play();
+			//console.log("prev");
+		};
 
 		AudioList.prototype.scrollset = function(){
 			this.iscroll = new iScroll('slide', {
@@ -132,11 +217,11 @@
 					innerHTML += "<img src=" + data[index].thumb + " alt=''> \
 								<h2> \
 						            <b>" + data[index].name + "</b> \
-						            <span>Macklemore Ryan Lewis Featuring Wanz - The Heist</span> \
 						        </h2> \
-						        <span class='time'>5:12</span> \
 								<span class='ico symbol'>e</span> \
 						        </li>";
+//						            <span>Macklemore Ryan Lewis Featuring Wanz - The Heist</span> \
+//						        <span class='time'>5:12</span> \
 					index++;
 				}
 				innerHTML += "</ul>";
@@ -145,7 +230,7 @@
 		};
 
 		AudioList.prototype.registEventHandleOnSlideCtrl = function(){
-			//assing handler
+			//assing handler			
 			$("#slide li").click(function(){
 				var i = $(this).find("img").attr("src");
 				//set background
@@ -168,18 +253,14 @@
 
 				//set footer title
 				$("#footer .wrap .title > h3").text($(this).attr("data_title"));
-				$("#footer .wrap .title > p").text("Artist");
+				//$("#footer .wrap .title > p").text("Artist");
 
-				//set time
-				var audio = document.getElementById("player");
+				var audio = document.getElementById("player");	
 				audio.addEventListener("loadedmetadata", function(){
+					//set time
 					$("#footer .wrap .time_end").text(formatSecondsAsTime(this.duration));
-				});
-				//$("#footer .wrap .time_end").text(formatSecondsAsTime(audio.duration));
-				//$("#footer .wrap .time_start").text($(this).attr("data_path").currentTime);
-				//$("#footer .wrap .time_start").text($("#player").currentTime);
-				//$("#footer .wrap .time_end").attr($("#player").trigger("duration"));
-			});	
+				});				
+			});
 		};
 
 		AudioList.prototype.onTimeSlideMouseUp = function(position){
@@ -208,17 +289,13 @@
 			$("#slide .scroll").append(innerHTML);
 			$("#selectedTitle").text(data[0].name);
 			$("#bg").css("background-image","url("+data[0].thumb+")");
-			// $("#bg").css("background-image","url(" + data[0].thumb + ") \
-			// 	no-repeat; \
-			// 	background-size:cover; \
-			// 	background-position:50% 50%;");
 			$("#player").attr("src", data[0].path);
 			//set footer title
 			$("#footer .wrap .title > h3").text(data[0].name);
-			$("#footer .wrap .title > p").text("Artist");
 			//set time
 			var audio = document.getElementById("player");
 			audio.addEventListener("loadedmetadata", function(){
+				//display time when metadata loaded
 				$("#footer .wrap .time_end").text(formatSecondsAsTime(this.duration));
 			});
 
