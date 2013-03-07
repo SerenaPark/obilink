@@ -409,15 +409,15 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 								+ " " + "\"" + outputFileName + ".m3u8" + "\""
 								+ " " + "./";  //"http://192.168.0.94:8888/";
 
-				//using internal segmenter of ffmpeg.exe
+				//using internal segmenter of ffmpeg.exe, do not set segment_time to a value below 10.
 				var xxxffmpeg_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + outputPath + "&"
 								+ " " + "ffmpeg -y -i " + "\"" + pathToMovie + "\""
 								+ " " + "-acodec libmp3lame -ar 48000 -ab 128k -s 480x320"
 								+ " " + "-vcodec libx264 -b:v 480000 -bt 200k -subq 7 -me_range 16"
 								+ " " + "-qcomp 0.6 -qmin 10 -qmax 51"
-								+ " " + "-flags -global_header -map 0 -f segment -segment_time 5 -segment_list_flags +live-cache"
+								+ " " + "-flags -global_header -map 0 -f segment -segment_time 10 -segment_list_flags +live-cache"
 								+ " " + "-segment_list " + "\"" + outputFileName + ".m3u8" + "\""
-								+ " " + "-segment_format mpegts " + "\"" + outputFileName + "%05d.ts" + "\"";
+								+ " " + "-segment_format mpegts " + "\"" + outputFileName + "%d.ts" + "\"";
 
 				console.log("Video-File: " + "ffmpeg process for " + outputFileName + " was started.");
 				exec(ffmpeg_cmd, function (error, stdout, stderr) {
