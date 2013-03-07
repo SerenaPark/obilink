@@ -211,32 +211,17 @@
 				else
 					innerHTML += "<ul>";
 				for(var j=0; j<5 && index<data.length; j++){
-					name = data[index].name.replace(/'/g, '`');
-					path = data[index].path.replace(/'/g, '`');
 					if(index == 0)
-						innerHTML += "<li class='on' data_title='"+ name +"' data_path='"+ path +"'>";
+						innerHTML += "<li class='on' data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\">";
 					else
-						innerHTML += "<li data_title='"+ name +"' data_path='"+ path +"'>";
+						innerHTML += "<li data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\">";
 
 					innerHTML += "<img src=" + data[index].thumb + " alt=''> \
 								<h2> \
-						            <b>" + name + "</b> \
+						            <b>" + data[index].name + "</b> \
 						        </h2> \
 								<span class='ico symbol'>e</span> \
 						        </li>";
-					// if(index == 0)
-					// 	innerHTML += "<li class='on' data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
-					// else
-					// 	innerHTML += "<li data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
-
-					// innerHTML += "<img src=" + data[index].thumb + " alt=''> \
-					// 			<h2> \
-					// 	            <b>" + data[index].name + "</b> \
-					// 	        </h2> \
-					// 			<span class='ico symbol'>e</span> \
-					// 	        </li>";
-//						            <span>Macklemore Ryan Lewis Featuring Wanz - The Heist</span> \
-//						        <span class='time'>5:12</span> \
 					index++;
 				}
 				innerHTML += "</ul>";
