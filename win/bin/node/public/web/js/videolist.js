@@ -29,7 +29,7 @@
 		};
 
 		VideoList.prototype.getDisplayStatus = function(){
-			var mqTab = window.matchMedia("all anssd (min-width:650px) and (max-width:1100px)");
+			var mqTab = window.matchMedia("all and (min-width:650px) and (max-width:1100px)");
 			var mqMobile = window.matchMedia("all and (min-width:0px) and (max-width:650px)");
 			var mqTv = window.matchMedia("all and (min-width:1100px)");
 
@@ -54,7 +54,15 @@
 				this.playPrev();
 			}, this));
 			
+			$("#content .prev").click(__bind(function(){
+				this.playPrev();
+			}, this));
+			
 			$("#footer .wrap .next").click(__bind(function(){
+				this.playNext();
+			}, this));
+			
+			$("#content .next").click(__bind(function(){
 				this.playNext();
 			}, this));
 
@@ -64,6 +72,7 @@
 		};
 
 		VideoList.prototype.play = function(){
+			
 			if($("#footer .wrap .play").text() == "d"){
 				//pause
 				$("#footer .wrap .play").text("e");
@@ -77,52 +86,38 @@
 		};
 		
 
-		VideoList.prototype.playNext = function(){
-			//------pseudo function
-   			//1. find next video
+		VideoList.prototype.playNext = function(){		
   			var next = $("#slide .scroll .on .on").next();
-  			//1.1 if there is no next video
+  		
   			if(next.length <= 0){
   				if( $("#slide .scroll .on").next().length > 0 ){
-  					//case of middle of list
   					next = $("#slide .scroll .on").next().children().first();
   				}else{
-  					//case of finding last video
   					next = $("#slide .scroll ul:first-child li:first-child");
   				}
   			}	  					
-  			//2. select video on slide-list
+  		
   			next.click();
   			
-  			//3.Move iScroll
   			this.iscroll.scrollToElement("#slide li.on", '400ms');
   			this.refreshScroll();
-  
-  			//this.play();
-		};
+  		};
 
-		VideoList.prototype.playPrev = function(){
-			//------pseudo function
-  			//1. find prev video
+		VideoList.prototype.playPrev = function(){		
   			var prev = $("#slide .scroll .on .on").prev();
-  			//1.1 if there is no prev video
+  		
   			if(prev.length <= 0){
   				if( $("#slide .scroll .on").prev().length > 0 ){
-  					//case of middle of list
   					prev = $("#slide .scroll .on").prev().children().last();
   				}else{
-  					//case of finding last video
   					prev = $("#slide .scroll ul:last-child li:last-child");
   				}
   			}	  					
-  			//2. select video on slide-list
+  		
   			prev.click();
 
-  			//3.Move iScroll
   			this.iscroll.scrollToElement("#slide li.on", '400ms');
   			this.refreshScroll();
-
-  			//this.play();
 		};
 
 		VideoList.prototype.scrollset = function(){
@@ -151,16 +146,14 @@
 					innerHTML += "<ul>";
 				for(var j=0; j<5 && index<data.length; j++){
 					if(index == 0)
-						innerHTML += "<li class='on' data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
+						innerHTML += "<li class='on' data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\">";
 					else
-						innerHTML += "<li data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
+						innerHTML += "<li data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\">";
 
 					innerHTML += "<img src=\"" + data[index].thumb + "\" alt=''> \
 							<h2> \
 							<b>" + data[index].name + "</b> \
-							<span>Macklemore Ryan Lewis Featuring Wanz - The Heist</span> \
-							</h2> \
-							<span class='time'>5:12</span> \
+									</h2> \
 							<span class='ico symbol'>e</span> \
 							</li>";
 					index++;
@@ -192,7 +185,6 @@
 				//set footer title
 				$("#footer .wrap .title > h3").text($(this).attr("data_title"));
 				$("#footer .wrap .title > p").attr("href", $(this).attr("data_path"));
-				$("#footer .wrap .title > p").text("video file selected...");
 			});	
 		};
 
@@ -220,7 +212,6 @@
 			//set footer title
 			$("#footer .wrap .title > h3").text(data[0].name);
 			$("#footer .wrap .title > p").attr("href", data[0].path);
-			$("#footer .wrap .title > p").text("video file selected...");
 
 			this.registEventHandleOnSlideCtrl();
 
@@ -230,10 +221,15 @@
 		VideoList.prototype.readVideoList = function(){
 			var vl = this;
 
+			if($("#header .wrap h1").text() == "Video")
+				ajaxUrl = "getVideoList";
+			else if($("#header .wrap h1").text() == "Dropbox Video")
+				ajaxUrl = "getDropboxVideoList";
+
 			$.ajax({
 				type : "GET"
 				, async : true
-				, url : "getVideoList"
+				, url : ajaxUrl
 				, dataType : "json"
 				, timeout : 3000
 				, cache : false
