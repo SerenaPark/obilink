@@ -370,68 +370,78 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 
 	//check a requested video file.
 	if(fs.existsSync(pathToMovie)) {
-		if(fs.existsSync(outputFile)) {
-			res.redirect(virtualRedirectVideoNormal+'/'+m3u8File);
+		var fileExt = pathToMovie.substring(pathToMovie.lastIndexOf('.')); 
+		fileExt = fileExt.toLowerCase();
+		//.mp4 video file is serviced directly without converting and others are converted.
+		if ( fileExt == '.mp4' ) {
+			var moviePath = pathToMovie.substring(pathToMovie.indexOf('contents'));
+			moviePath = moviePath.replace(/\\/g, '/');
+			res.redirect(moviePath);
 		}
 		else {
-			// check if the requested file is being prepared or was prepared.
-			if(fs.existsSync(outputFile+'.preparing')) {
-				console.log("Video-File: "+m3u8File+' is already preparing.');
-					res.redirect(virtualRedirectVideoNormal+'/'+m3u8File);
+			if(fs.existsSync(outputFile)) {
+				res.redirect(virtualRedirectVideoNormal+'/'+m3u8File);
 			}
 			else {
-				// from now, even though this request is disconnected or being disconnected
-				// the server application(app.js) will keep to covert for next other client requests.
-
-				// make a directory for output files.
-				fs.mkdirRecursiveSync(outputPath);
-
-				// touch *.preparing file to mark that the requested file is being prepared or was prepared.
-				fs.closeSync(fs.openSync(outputFile+'.preparing', 'a'));
-				console.log("Video-File: "+m3u8File+' is preparing.');
-
-				// watch if outputFile is created. and then this request is redirected.
-				fs.watchFile(outputFile, function (curr, prev) {
-					console.log("Video-File: "+m3u8File+' is preparing.');
-					fs.unwatchFile(outputFile);
+				// check if the requested file is being prepared or was prepared.
+				if(fs.existsSync(outputFile+'.preparing')) {
+					console.log("Video-File: "+m3u8File+' is already preparing.');
 					res.redirect(virtualRedirectVideoNormal+'/'+m3u8File);
-				});
+				}
+				else {
+					// from now, even though this request is disconnected or being disconnected
+					// the server application(app.js) will keep to covert for next other client requests.
 
-				var exec = require("child_process").exec;
+					// make a directory for output files.
+					fs.mkdirRecursiveSync(outputPath);
 
-				//using external segmenter.exe
-				var ffmpeg_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + outputPath + "&"
-								+ " " + "ffmpeg -y -i " + "\"" + pathToMovie + "\""
-								+ " " + "-f mpegts -acodec libmp3lame -ar 48000 -ab 128k -s 480x320"
-								+ " " + "-vcodec libx264 -b:v 480000 -bt 200k -subq 7 -me_range 16"
-								+ " " + "-qcomp 0.6 -qmin 10 -qmax 51 - | segmenter - 10"
-								+ " " + "\"" + outputFileName + "\""
-								+ " " + "\"" + outputFileName + ".m3u8" + "\""
-								+ " " + "./";  //"http://192.168.0.94:8888/";
+					// touch *.preparing file to mark that the requested file is being prepared or was prepared.
+					fs.closeSync(fs.openSync(outputFile+'.preparing', 'a'));
+					console.log("Video-File: "+m3u8File+' is preparing.');
 
-				//using internal segmenter of ffmpeg.exe, do not set segment_time to a value below 10.
-				var xxxffmpeg_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + outputPath + "&"
-								+ " " + "ffmpeg -y -i " + "\"" + pathToMovie + "\""
-								+ " " + "-acodec libmp3lame -ar 48000 -ab 128k -s 480x320"
-								+ " " + "-vcodec libx264 -b:v 480000 -bt 200k -subq 7 -me_range 16"
-								+ " " + "-qcomp 0.6 -qmin 10 -qmax 51"
-								+ " " + "-flags -global_header -map 0 -f segment -segment_time 10 -segment_list_flags +live-cache"
-								+ " " + "-segment_list " + "\"" + outputFileName + ".m3u8" + "\""
-								+ " " + "-segment_format mpegts " + "\"" + outputFileName + "%d.ts" + "\"";
+					// watch if outputFile is created. and then this request is redirected.
+					fs.watchFile(outputFile, function (curr, prev) {
+						console.log("Video-File: "+m3u8File+' is preparing.');
+						fs.unwatchFile(outputFile);
+						res.redirect(virtualRedirectVideoNormal+'/'+m3u8File);
+					});
 
-				console.log("Video-File: " + "ffmpeg process for " + outputFileName + " was started.");
-				exec(ffmpeg_cmd, function (error, stdout, stderr) {
-					console.log("Video-File: " + "ffmpeg process for " + outputFileName + " was terminated.");
-					if(error) {
-						console.log("Video-File : " + error);
-					}
-					if(stdout) {
-						//console.log("Video-File : " + stdout);
-					}
-					if(stderr) {
-						//console.log("Video-File : " + stderr);
-					}
-				});
+					var exec = require("child_process").exec;
+
+					//using external segmenter.exe
+					var ffmpeg_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + outputPath + "&"
+									+ " " + "ffmpeg -y -i " + "\"" + pathToMovie + "\""
+									+ " " + "-f mpegts -acodec libmp3lame -ar 48000 -ab 128k -s 480x320"
+									+ " " + "-vcodec libx264 -b:v 480000 -bt 200k -subq 7 -me_range 16"
+									+ " " + "-qcomp 0.6 -qmin 10 -qmax 51 - | segmenter - 10"
+									+ " " + "\"" + outputFileName + "\""
+									+ " " + "\"" + outputFileName + ".m3u8" + "\""
+									+ " " + "./";  //"http://192.168.0.94:8888/";
+
+					//using internal segmenter of ffmpeg.exe, do not set segment_time to a value below 10.
+					var xxxffmpeg_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + outputPath + "&"
+									+ " " + "ffmpeg -y -i " + "\"" + pathToMovie + "\""
+									+ " " + "-acodec libmp3lame -ar 48000 -ab 128k -s 480x320"
+									+ " " + "-vcodec libx264 -b:v 480000 -bt 200k -subq 7 -me_range 16"
+									+ " " + "-qcomp 0.6 -qmin 10 -qmax 51"
+									+ " " + "-flags -global_header -map 0 -f segment -segment_time 10 -segment_list_flags +live-cache"
+									+ " " + "-segment_list " + "\"" + outputFileName + ".m3u8" + "\""
+									+ " " + "-segment_format mpegts " + "\"" + outputFileName + "%d.ts" + "\"";
+
+					console.log("Video-File: " + "ffmpeg process for " + outputFileName + " was started.");
+					exec(ffmpeg_cmd, function (error, stdout, stderr) {
+						console.log("Video-File: " + "ffmpeg process for " + outputFileName + " was terminated.");
+						if(error) {
+							console.log("Video-File : " + error);
+						}
+						if(stdout) {
+							//console.log("Video-File : " + stdout);
+						}
+						if(stderr) {
+							//console.log("Video-File : " + stderr);
+						}
+					});
+				}
 			}
 		}
 	}
