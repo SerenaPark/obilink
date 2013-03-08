@@ -203,8 +203,6 @@
 		AudioList.prototype.getInnerHTML = function(data, type){
 			var innerHTML = "";
 			var index = 0;
-			var name;
-			var path;
 			for(var i=0; i<data.length/5; i++){
 				if(index == 0)
 					innerHTML += "<ul class='on'>";
@@ -308,11 +306,17 @@
 
 		AudioList.prototype.readAudioList = function(){
 			var vl = this;
+			var ajaxUrl;
+
+			if($("#header .wrap h1").text() == "Music")
+				ajaxUrl = "getAudioList";
+			else if($("#header .wrap h1").text() == "Dropbox Music")
+				ajaxUrl = "getDropboxAudioList";
 
 			$.ajax({
 				type : "GET"
 				, async : true
-				, url : "getAudioList"
+				, url : ajaxUrl
 				, dataType : "json"
 				, timeout : 3000
 				, cache : false
@@ -325,8 +329,6 @@
 				}				
 			});
 		};
-
-
 
 		return AudioList;
 	})();
