@@ -32,6 +32,7 @@ private:
     void initialize();
     void updateShareAddress();                                  // update IP Address and QRcode for share
     void updateListwidget();                                    // update UI ListWidget from m_localShareDirList
+    void updateShareSymbolicDir();
     void displayShareAddress(QString addr);                     // display server IP address on UI
     void displayQRCode(QString addr);                           // display server QR code of IP address on UI
     QString getIPAddress();                                     // get server IP address
