@@ -230,10 +230,15 @@
 		VideoList.prototype.readVideoList = function(){
 			var vl = this;
 
+			if($("#header .wrap h1").text() == "Video")
+				ajaxUrl = "getVideoList";
+			else if($("#header .wrap h1").text() == "Dropbox Video")
+				ajaxUrl = "getDropboxVideoList";
+
 			$.ajax({
 				type : "GET"
 				, async : true
-				, url : "getVideoList"
+				, url : ajaxUrl
 				, dataType : "json"
 				, timeout : 3000
 				, cache : false
