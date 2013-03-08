@@ -151,9 +151,9 @@
 					innerHTML += "<ul>";
 				for(var j=0; j<5 && index<data.length; j++){
 					if(index == 0)
-						innerHTML += "<li class='on' data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
+						innerHTML += "<li class='on' data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\">";
 					else
-						innerHTML += "<li data_title='"+ data[index].name +"' data_path='"+ data[index].path +"'>";
+						innerHTML += "<li data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\">";
 
 					innerHTML += "<img src=\"" + data[index].thumb + "\" alt=''> \
 							<h2> \
