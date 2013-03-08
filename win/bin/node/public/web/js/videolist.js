@@ -50,25 +50,79 @@
 			 	$(location).attr('href', "index.html");
 			});
 
-	  		$("#footer .wrap .prev").click(function(){
-				console.log("prev");
-			});
-			$("#footer .wrap .next").click(function(){
-				console.log("next");
-			});
+	  	$("#footer .wrap .prev").click(__bind(function(){
+				this.playPrev();
+			}, this));
+			
+			$("#footer .wrap .next").click(__bind(function(){
+				this.playNext();
+			}, this));
 
-			$("#footer .wrap .play").click(function(){
-				if($(this).text() == "d"){
-					//pause
-					$(this).text("e");
-				}
-				else if($(this).text() == "e"){
-					//play
-					//do not set to "d" for returning from video player.
-					//$(this).text("d");
-					$(location).attr('href', $("#footer .wrap .title > p").attr("href"));
-				}
-			});	
+			$("#footer .wrap .play").click(__bind(function(){
+				this.play();	
+			}, this));				
+		};
+
+		VideoList.prototype.play = function(){
+			if($("#footer .wrap .play").text() == "d"){
+				//pause
+				$("#footer .wrap .play").text("e");
+			}
+			else if($("#footer .wrap .play").text() == "e"){
+				//play
+				//do not set to "d" for returning from video player.
+				//$(this).text("d");
+				$(location).attr('href', $("#footer .wrap .title > p").attr("href"));
+			}
+		};
+		
+
+		VideoList.prototype.playNext = function(){
+			//------pseudo function
+   			//1. find next video
+  			var next = $("#slide .scroll .on .on").next();
+  			//1.1 if there is no next video
+  			if(next.length <= 0){
+  				if( $("#slide .scroll .on").next().length > 0 ){
+  					//case of middle of list
+  					next = $("#slide .scroll .on").next().children().first();
+  				}else{
+  					//case of finding last video
+  					next = $("#slide .scroll ul:first-child li:first-child");
+  				}
+  			}	  					
+  			//2. select video on slide-list
+  			next.click();
+  			
+  			//3.Move iScroll
+  			this.iscroll.scrollToElement("#slide li.on", '400ms');
+  			this.refreshScroll();
+  
+  			//this.play();
+		};
+
+		VideoList.prototype.playPrev = function(){
+			//------pseudo function
+  			//1. find prev video
+  			var prev = $("#slide .scroll .on .on").prev();
+  			//1.1 if there is no prev video
+  			if(prev.length <= 0){
+  				if( $("#slide .scroll .on").prev().length > 0 ){
+  					//case of middle of list
+  					prev = $("#slide .scroll .on").prev().children().last();
+  				}else{
+  					//case of finding last video
+  					prev = $("#slide .scroll ul:last-child li:last-child");
+  				}
+  			}	  					
+  			//2. select video on slide-list
+  			prev.click();
+
+  			//3.Move iScroll
+  			this.iscroll.scrollToElement("#slide li.on", '400ms');
+  			this.refreshScroll();
+
+  			//this.play();
 		};
 
 		VideoList.prototype.scrollset = function(){
@@ -154,7 +208,6 @@
 				$("#slide ul").width(100+"%");		
 			}
 			this.iscroll.refresh();
-			$('.time_control input').slideControl();
 		};
 
 		VideoList.prototype.onReadVideoList = function(data){
