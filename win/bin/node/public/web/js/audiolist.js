@@ -63,6 +63,14 @@
 			 	$(location).attr('href', "index.html");
 			});
 
+			$("#content .prev").click(__bind(function(){
+				this.playPrev();
+			}, this));
+
+			$("#content .next").click(__bind(function(){
+				this.playNext();
+			}, this));
+
 	  		$("#footer .wrap .prev").click(__bind(function(){
 	  			this.playPrev();
 			}, this));
