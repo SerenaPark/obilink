@@ -50,7 +50,7 @@
 			 	$(location).attr('href', "index.html");
 			});
 
-	  	$("#footer .wrap .prev").click(__bind(function(){
+	  		$("#footer .wrap .prev").click(__bind(function(){
 				this.playPrev();
 			}, this));
 			
