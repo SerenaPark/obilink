@@ -3,6 +3,7 @@
 #include "xmlManager.h"
 #include <QtNetwork/QNetworkInterface>
 #include <QFileDialog>
+#include <QMessageBox>
 
 /* File     : mainwindow.cpp
  * Author   : Edgar Seo, Ted Kim
@@ -32,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    CXmlManager::instance()->removeAllSymbolDir();
     CXmlManager::destroy();
     delete ui;
 }
@@ -53,6 +55,7 @@ void MainWindow::initialize()
 
     updateShareAddress();
     updateListwidget();
+    updateShareSymbolicDir();
 
     return;
 }
@@ -80,6 +83,11 @@ void MainWindow::updateListwidget()
     return;
 }
 
+void MainWindow::updateShareSymbolicDir()
+{
+    CXmlManager::instance()->updateShareSymbolicDir();
+    return;
+}
 
 void MainWindow::displayShareAddress(QString addr)
 {
@@ -204,8 +212,10 @@ void MainWindow::on_cb_dropbox_clicked()
 
     if (CXmlManager::instance()->isDropboxInstalled())
         CXmlManager::instance()->updateDropbox(ui->cb_dropbox->checkState());
-    else
+    else {
         ui->cb_dropbox->setChecked(false);
+        QMessageBox::information(0, "ALARM", "The dropbox is not installed.");
+    }
 
     return;
 

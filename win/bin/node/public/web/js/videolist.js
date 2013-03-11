@@ -153,9 +153,7 @@
 					innerHTML += "<img src=\"" + data[index].thumb + "\" alt=''> \
 							<h2> \
 							<b>" + data[index].name + "</b> \
-							<span>Macklemore Ryan Lewis Featuring Wanz - The Heist</span> \
-							</h2> \
-							<span class='time'>5:12</span> \
+									</h2> \
 							<span class='ico symbol'>e</span> \
 							</li>";
 					index++;
@@ -187,7 +185,6 @@
 				//set footer title
 				$("#footer .wrap .title > h3").text($(this).attr("data_title"));
 				$("#footer .wrap .title > p").attr("href", $(this).attr("data_path"));
-				$("#footer .wrap .title > p").text("video file selected...");
 			});	
 		};
 
@@ -215,7 +212,6 @@
 			//set footer title
 			$("#footer .wrap .title > h3").text(data[0].name);
 			$("#footer .wrap .title > p").attr("href", data[0].path);
-			$("#footer .wrap .title > p").text("video file selected...");
 
 			this.registEventHandleOnSlideCtrl();
 

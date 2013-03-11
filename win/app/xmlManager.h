@@ -42,10 +42,12 @@ public:
     QStringList getLocalShareDirList();
     QStringList getLocalSymbolicDirList();
     bool appendShareDir(QString);                           // append share directory path to list
-    bool removeShareDir(int);                               // remove share directory path from list
+    bool removeShareDir(int);                               // remove share directory path from list1
     bool removeShareDir(QString);
+    bool removeAllSymbolDir();
 
     void updateDropbox(bool);
+    void updateShareSymbolicDir();                          //
     bool isDropboxShareMode();                              // return m_dropboxShareMode
     bool isDropboxInstalled();                              // return true, if dropbox installed in the local computer
 };

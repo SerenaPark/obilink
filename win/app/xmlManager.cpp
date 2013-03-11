@@ -148,6 +148,7 @@ QString CXmlManager::makeSymbolicPath(QString originPath, const QString symbolic
         QDir().mkdir("node\\public\\contents");
     }
 
+    QString qstr = command + " " + arg1 + " " + arg2;
     m_lnProc.start(command + " " + arg1 + " " + arg2);
     m_lnProc.waitForFinished();
 
@@ -237,10 +238,7 @@ bool CXmlManager::isDropboxShareMode()
 
 bool CXmlManager::isDropboxInstalled()
 {
-    if (getDropboxInstalledPath().length() < 1) {
-        return false;
-    }
-    return true;
+    return QDir(getDropboxInstalledPath()).exists();
 }
 
 QString CXmlManager::getDropboxInstalledPath()
@@ -267,4 +265,31 @@ QStringList CXmlManager::getLocalShareDirList()
 QStringList CXmlManager::getLocalSymbolicDirList()
 {
     return m_localSymbolicDirList;
+}
+
+bool CXmlManager::removeAllSymbolDir()
+{
+    QProcess removeAllSymbolicDirProc;
+    QDir dir;
+    QString command = "\"" + dir.currentPath().replace("/", "\\") + "\\extbin\\rj.exe\""; /* rj.exe from http://www.flexhex.com for free */
+
+    while (m_localSymbolicDirList.size() > 0) {
+        QString symbolicAbsolutePath = getSymbolicAbsoultePath(m_localSymbolicDirList[m_localSymbolicDirList.size()-1]);
+        removeAllSymbolicDirProc.start(command + " \"" + symbolicAbsolutePath + "\"");
+
+        if(removeAllSymbolicDirProc.waitForFinished())
+            dir.rmdir(symbolicAbsolutePath);
+
+        m_localSymbolicDirList.removeLast();
+    }
+    return true;
+
+}
+
+void CXmlManager::updateShareSymbolicDir()
+{
+    for (int i = 0; i < m_localSymbolicDirList.size(); i++) {
+        makeSymbolicPath(m_localShareDirList[i], m_localSymbolicDirList[i]);
+    }
+    return;
 }

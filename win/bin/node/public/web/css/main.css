@@ -99,6 +99,7 @@
 #slide li.on {z-index:2;}
 #slide li.on .ico {position:absolute; left:-2px; top:-2px; text-indent:-9999px; font-size:0; line-height:0; width:100%; height:100%; border:2px solid #049dfd; display:block;}
 .video #slide li.on .ico {border-color:#04ffcd;}
+#content .title h2 span b {display: none;}
 }
 @media all and (orientation:portrait) {
 #content .title {display:none;}
