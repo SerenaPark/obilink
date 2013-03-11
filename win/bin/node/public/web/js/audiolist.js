@@ -150,7 +150,7 @@
   			next.click();
 
   			//4.Move iScroll
-  			this.iscroll.scrollToElement("#slide li.on", '400ms');
+  			this.iscroll.scrollToElement("#slide li.on", 100);
   			this.refreshScroll();
 
   			//5. play music
@@ -183,7 +183,7 @@
   			prev.click();
 
   			//4.Move iScroll
-  			this.iscroll.scrollToElement("#slide li.on", '400ms');
+  			this.iscroll.scrollToElement("#slide li.on", 100);
   			this.refreshScroll();
 
   			//5. play music
