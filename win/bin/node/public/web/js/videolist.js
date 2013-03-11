@@ -99,7 +99,7 @@
   		
   			next.click();
   			
-  			this.iscroll.scrollToElement("#slide li.on", '400ms');
+  			this.iscroll.scrollToElement("#slide li.on", 100);
   			this.refreshScroll();
   		};
 
@@ -116,7 +116,7 @@
   		
   			prev.click();
 
-  			this.iscroll.scrollToElement("#slide li.on", '400ms');
+  			this.iscroll.scrollToElement("#slide li.on", 100);
   			this.refreshScroll();
 		};
 
