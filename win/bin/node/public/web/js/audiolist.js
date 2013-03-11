@@ -1,5 +1,5 @@
 ( function(){
-	var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+	var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };	
 	function formatSecondsAsTime(secs){
 		var hr  = Math.floor(secs / 3600);
 		var min = Math.floor((secs - (hr * 3600))/60);
@@ -21,6 +21,10 @@
 			this.filelist = [];
 			this.iscroll;
 			this.deviceType;
+			this.audioContext;
+			this.audioSource;
+			this.audioAnalizer;
+			this.canvasContext;
 			this.init();
 		    this.readAudioList();
 		};
@@ -39,7 +43,22 @@
   				$(window).resize(function(){
 					clouserVar2.refreshScroll();
 				});	
-			});			
+			});
+
+			//get audio context
+			// try {
+   //              this.audioContext = new webkitAudioContext();
+   //              this.audioAnalizer = this.audioContext.createAnalyser();
+   //              var canvas = document.getElementById('bgEq');
+   //              if(canvas){
+   //              	this.canvasContext = canvas.getContext('2d');
+   //              	this.canvasContext.fillStyle = '#ffffff';
+   //              }                
+   //          }
+   //          catch(e) {
+   //              this.audioContext = null;
+   //              this.audioAnalizer = null;
+   //          }
 		};
 
 		AudioList.prototype.getDisplayStatus = function(){
@@ -104,6 +123,7 @@
 				//play
 				$("#footer .wrap .play").text("d");
 				$("#player").trigger("play");
+				this.startEq();
 			}
 		};
 
@@ -119,11 +139,48 @@
 		AudioList.prototype.play = function(){
 			$("#footer .wrap .play").text("d");
 			$("#player").trigger("play");
+
+			this.startEq();
 		};
 
 		AudioList.prototype.pause = function(){
 			$("#footer .wrap .play").text("e");
 			$("#player").trigger("pause");
+		};
+
+		AudioList.prototype.startEq = function(){
+			if(this.audioContext){
+				var audio = document.getElementById('player');
+				// Create a new audio source from the <audio> element
+				var source = this.audioContext.createMediaElementSource(audio);
+				// Connect up the output from the audio source to the input of the analyser
+				source.connect(this.audioAnalizer);
+				// Connect up the audio output of the analyser to the audioContext destination i.e. the speakers (The analyser takes the output of the <audio> element and swallows it. If we want to hear the sound of the <audio> element then we need to re-route the analyser's output to the speakers)
+				this.audioAnalizer.connect(this.audioContext.destination);
+
+				this.drawEq();
+			}			
+		};
+
+		AudioList.prototype.drawEq = function(){
+			if(!this.audioContext)
+				return;
+
+			var canvas = document.getElementById("bgEq");
+			if(canvas){
+				window.webkitRequestAnimationFrame(__bind(this.drawEq, this));
+				var freqByteData = new Uint8Array(this.audioAnalizer.frequencyBinCount);
+				// Copy the frequency data into our new array
+				this.audioAnalizer.getByteFrequencyData(freqByteData);
+
+				// Clear the drawing display
+				this.canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+
+				// For each "bucket" in the frequency data, draw a line corresponding to its magnitude
+				for (var i = 0; i < freqByteData.length; i++) {
+					this.canvasContext.fillRect(i, canvas.height - freqByteData[i], 1, canvas.height);
+				}
+			}			
 		};
 
 		AudioList.prototype.playNext = function(){
@@ -240,7 +297,7 @@
 			$("#slide li").click(function(){
 				var i = $(this).find("img").attr("src");
 				//set background
-				$("#bg").css("background-image","url("+i+")");
+				$("#bg").css('background-image','url(\"'+i+'\")');
 
 				//set selected item on landscape
 				$("#slide li").removeClass("on");
@@ -296,7 +353,7 @@
 			var innerHTML = this.getInnerHTML(data);
 			$("#slide .scroll").append(innerHTML);
 			$("#selectedTitle").text(data[0].name);
-			$("#bg").css("background-image","url("+data[0].thumb+")");
+			$("#bg").css('background-image','url(\"'+data[0].thumb+'\")');
 			$("#player").attr("src", data[0].path);
 			//set footer title
 			$("#footer .wrap .title > h3").text(data[0].name);
