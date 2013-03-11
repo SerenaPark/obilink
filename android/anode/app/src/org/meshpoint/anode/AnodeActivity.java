@@ -61,48 +61,61 @@ public class AnodeActivity extends Activity implements StateListener {
 	private String instance;
 	private Isolate isolate;
 
+	@Override
+	protected void onSaveInstanceState(Bundle savedInstanceState) {
+		super.onSaveInstanceState(savedInstanceState);
+		if (instance != null) 
+			savedInstanceState.putString("instance", instance);
+	}
+
 	/** Called when the activity is first created. */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        ctx = getApplicationContext();
-        initUI();
-        uiThread = viewHandler.getLooper().getThread().getId();
-    }
-    
-    private void initUI() {
-    	startButton = (Button)findViewById(R.id.start_button);
-    	startButton.setOnClickListener(new StartClickListener());
-    	stopButton = (Button)findViewById(R.id.stop_button);
-    	stopButton.setOnClickListener(new StopClickListener());
-    	argsText = (EditText)findViewById(R.id.args_editText);
-    	stateText = (TextView)findViewById(R.id.args_stateText);
-    	argsText.setOnKeyListener(new OnKeyListener() {
-    	    public boolean onKey(View v, int keyCode, KeyEvent event) {
-    	        /* If the event is a key-down event on the "enter" button */
-    	        if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
-    	            (keyCode == KeyEvent.KEYCODE_ENTER)) {
-    	          startAction();
-    	          return true;
-    	        }
-    	        return false;
-    	    }
-    	});
-    	qrcodeText = (TextView)findViewById(R.id.qrcode_textView);
-    	qrcodeImage = (ImageView)findViewById(R.id.qrcode_imageView);    	
-    	__stateChanged(Runtime.STATE_CREATED);    	
-    }
-    
-    private void initRuntime(String[] opts) {
-    	try {
-    		Runtime.initRuntime(ctx, opts);
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		if (savedInstanceState != null) {
+			instance = savedInstanceState.getString("instance");
+		}
+		setContentView(R.layout.main);
+		ctx = getApplicationContext();
+		initUI();
+		uiThread = viewHandler.getLooper().getThread().getId();
+	}
+
+	private void initUI() {
+		startButton = (Button)findViewById(R.id.start_button);
+		startButton.setOnClickListener(new StartClickListener());
+		stopButton = (Button)findViewById(R.id.stop_button);
+		stopButton.setOnClickListener(new StopClickListener());
+		argsText = (EditText)findViewById(R.id.args_editText);
+		stateText = (TextView)findViewById(R.id.args_stateText);
+		argsText.setOnKeyListener(new OnKeyListener() {
+			public boolean onKey(View v, int keyCode, KeyEvent event) {
+				/* If the event is a key-down event on the "enter" button */
+				if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+					(keyCode == KeyEvent.KEYCODE_ENTER)) {
+					startAction();
+					return true;
+				}
+				return false;
+			}
+		});
+		qrcodeText = (TextView)findViewById(R.id.qrcode_textView);
+		qrcodeImage = (ImageView)findViewById(R.id.qrcode_imageView);
+		if (instance == null)
+			__stateChanged(Runtime.STATE_CREATED);
+		else
+			__stateChanged(Runtime.STATE_STARTED);
+	}
+
+	private void initRuntime(String[] opts) {
+		try {
+			Runtime.initRuntime(ctx, opts);
 		} catch (InitialisationException e) {
 			Log.v(TAG, "initRuntime: exception: " + e + "; cause: " + e.getCause());
 		}
-    }
-    
-    private void startAction() {
+	}
+
+	private void startAction() {
 		String options = getIntent().getStringExtra(AnodeReceiver.OPTS);
 		String instance = getIntent().getStringExtra(AnodeReceiver.INST);
 		String[] opts = options == null ? null : options.split("\\s");
@@ -118,10 +131,10 @@ public class AnodeActivity extends Activity implements StateListener {
 		} catch (NodeException e) {
 			Log.v(TAG, "isolate start: exception: " + e);
 		}
-    }
-    
-    private void stopAction() {
-    	if(instance == null) {
+	}
+
+	private void stopAction() {
+		if(instance == null) {
 			Log.v(TAG, "AnodeReceiver.onReceive::stop: no instance currently running for this activity");
 			return;
 		}
@@ -132,19 +145,19 @@ public class AnodeActivity extends Activity implements StateListener {
 		} catch (NodeException e) {
 			Log.v(TAG, "isolate stop: exception: " + e);
 		}
-    }
-    
-    class StartClickListener implements OnClickListener {
+	}
+
+	class StartClickListener implements OnClickListener {
 		public void onClick(View arg0) {
 			startAction();
 		}
-    }
+	}
 
-    class StopClickListener implements OnClickListener {
+	class StopClickListener implements OnClickListener {
 		public void onClick(View arg0) {
 			stopAction();
 		}
-    }
+	}
 
 	@Override
 	public void stateChanged(final int state) {
@@ -164,9 +177,13 @@ public class AnodeActivity extends Activity implements StateListener {
 		startButton.setEnabled(state == Runtime.STATE_CREATED);
 		stopButton.setEnabled(state == Runtime.STATE_STARTED);
 		updateQRCodeInfo(state == Runtime.STATE_STARTED);
-    			
+
 		/* exit the activity if the runtime has exited */
 		if(state == Runtime.STATE_STOPPED) {
+			if (instance != null) {
+				AnodeService.removeInstance(instance);
+				instance = null;
+			}
 			finish();
 		}
 	}
@@ -175,16 +192,16 @@ public class AnodeActivity extends Activity implements StateListener {
 		Resources res = ctx.getResources();
 		String result = null;
 		switch(state) {
-		case Runtime.STATE_CREATED:
+			case Runtime.STATE_CREATED:
 			result = res.getString(R.string.created);
 			break;
-		case Runtime.STATE_STARTED:
+			case Runtime.STATE_STARTED:
 			result = res.getString(R.string.started);
 			break;
-		case Runtime.STATE_STOPPING:
+			case Runtime.STATE_STOPPING:
 			result = res.getString(R.string.stopping);
 			break;
-		case Runtime.STATE_STOPPED:
+			case Runtime.STATE_STOPPED:
 			result = res.getString(R.string.stopped);
 			break;
 		}
@@ -197,7 +214,7 @@ public class AnodeActivity extends Activity implements StateListener {
 
 		for (int i = 0; i < infos.length; i += 2) { 
 			if (infos[i].equals("ipaddr")) {
-				return infos[i+1];				
+				return infos[i+1];
 			}
 		}
 		
@@ -211,7 +228,7 @@ public class AnodeActivity extends Activity implements StateListener {
 		if (!show || wifiAddr.equals("0.0.0.0")) {
 			if (wifiAddr.equals("0.0.0.0")) {
 				String no_wifi = ctx.getResources().getString(R.string.no_wifi);
-				qrcodeText.setText(no_wifi);				
+				qrcodeText.setText(no_wifi);
 			} else {
 				qrcodeText.setText("");
 			}
@@ -225,11 +242,11 @@ public class AnodeActivity extends Activity implements StateListener {
 		// hardcode needs to be replaced in other way 
 		String qrcodeURL = "http://" + wifiAddr + ":8888";
 		qrcodeText.setText(qrcodeURL);
-	
+
 		int smallerDimension = 200;
 		QRCodeEncoder qrEncoder = new QRCodeEncoder(qrcodeURL, null, Contents.Type.TEXT, BarcodeFormat.QR_CODE.toString(), smallerDimension);
 		try {
-			Bitmap qrcodeBitmap = qrEncoder.encodeAsBitmap();			
+			Bitmap qrcodeBitmap = qrEncoder.encodeAsBitmap();
 			qrcodeImage.setImageBitmap(qrcodeBitmap);
 		} catch (WriterException e) {
 			e.printStackTrace();
