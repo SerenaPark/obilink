@@ -62,7 +62,7 @@
 		};
 
 		AudioList.prototype.getDisplayStatus = function(){
-			var mqTab = window.matchMedia("all anssd (min-width:650px) and (max-width:1100px)");
+			var mqTab = window.matchMedia("all and (min-width:650px) and (max-width:1100px)");
 			var mqMobile = window.matchMedia("all and (min-width:0px) and (max-width:650px)");
 			var mqTv = window.matchMedia("all and (min-width:1100px)");
 
