@@ -123,7 +123,7 @@
 				//play
 				$("#footer .wrap .play").text("d");
 				$("#player").trigger("play");
-				this.startEq();
+				//this.startEq();
 			}
 		};
 
@@ -140,7 +140,7 @@
 			$("#footer .wrap .play").text("d");
 			$("#player").trigger("play");
 
-			this.startEq();
+			//this.startEq();
 		};
 
 		AudioList.prototype.pause = function(){
