@@ -39,7 +39,6 @@ import android.widget.TextView;
 import android.widget.ImageView;
 import android.net.wifi.WifiManager;
 
-
 import org.obilink.util.QRCodeEncoder;
 import org.obilink.util.Contents;
 import com.google.zxing.BarcodeFormat;
@@ -61,20 +60,13 @@ public class AnodeActivity extends Activity implements StateListener {
 	private String instance;
 	private Isolate isolate;
 
-	@Override
-	protected void onSaveInstanceState(Bundle savedInstanceState) {
-		super.onSaveInstanceState(savedInstanceState);
-		if (instance != null) 
-			savedInstanceState.putString("instance", instance);
-	}
-
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		if (savedInstanceState != null) {
-			instance = savedInstanceState.getString("instance");
-		}
+		
+		instance = AnodeService.soleInstance();
+		
 		setContentView(R.layout.main);
 		ctx = getApplicationContext();
 		initUI();
@@ -174,17 +166,17 @@ public class AnodeActivity extends Activity implements StateListener {
 	
 	private void __stateChanged(final int state) {
 		stateText.setText(getStateString(state));
-		startButton.setEnabled(state == Runtime.STATE_CREATED);
+		startButton.setEnabled(state != Runtime.STATE_STARTED);
 		stopButton.setEnabled(state == Runtime.STATE_STARTED);
 		updateQRCodeInfo(state == Runtime.STATE_STARTED);
 
 		/* exit the activity if the runtime has exited */
 		if(state == Runtime.STATE_STOPPED) {
-			if (instance != null) {
-				AnodeService.removeInstance(instance);
-				instance = null;
-			}
-			finish();
+			AnodeService.removeInstance(instance);
+			instance = null;
+			isolate = null;
+			
+			//finish();
 		}
 	}
 	
