@@ -37,14 +37,10 @@ app.configure(function() {
     store: new express.session.MemoryStore
   }));
   app.use(express.static(__dirname + '/web'));
-  //app.use(express.static(__dirname + '/contents')); 
   app.use(express.static(__dirname));
   app.use(express.directory(__dirname + '/web'));
   app.use(app.router);
   app.use(express.logger('dev'));
-});
-
-app.get('/', function(req, res){
 });
 
 app.get('/thumb/audio/*', function(req, res) {
