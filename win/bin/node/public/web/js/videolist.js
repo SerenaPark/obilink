@@ -145,10 +145,18 @@
 				else
 					innerHTML += "<ul>";
 				for(var j=0; j<5 && index<data.length; j++){
-					if(index == 0)
-						innerHTML += "<li class='on' data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\">";
-					else
-						innerHTML += "<li data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\">";
+					if(data[index].duration) {
+						if(index == 0)
+							innerHTML += "<li class='on' data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\" data_duration=\""+ data[index].duration +"\">";
+						else
+							innerHTML += "<li data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\" data_duration=\""+ data[index].duration +"\">";
+					}
+					else {
+						if(index == 0)
+							innerHTML += "<li class='on' data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\">";
+						else
+							innerHTML += "<li data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\">";
+					}
 
 					innerHTML += "<img src=\"" + data[index].thumb + "\" alt=''> \
 							<h2> \
@@ -183,7 +191,10 @@
 				$("#footer .wrap .play").text("e");
 
 				//set footer title
-				$("#footer .wrap .title > h3").text($(this).attr("data_title"));
+				$("#footer .wrap .title > h3#first").text($(this).attr("data_title"));
+				if($(this).attr("data_duration")) {
+					$("#footer .wrap .title > h3#second").text("< Time: " + $(this).attr("data_duration") + " >");
+				}
 				$("#footer .wrap .title > p").attr("href", $(this).attr("data_path"));
 			});	
 		};
@@ -210,7 +221,10 @@
 			$("#bg").css("background-image","url(\""+data[0].thumb+"\")");
 
 			//set footer title
-			$("#footer .wrap .title > h3").text(data[0].name);
+			$("#footer .wrap .title > h3#first").text(data[0].name);
+			if(data[0].duration) {
+				$("#footer .wrap .title > h3#second").text("< Time: " + data[0].duration + " >");
+			}
 			$("#footer .wrap .title > p").attr("href", data[0].path);
 
 			this.registEventHandleOnSlideCtrl();
