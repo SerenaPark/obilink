@@ -72,7 +72,7 @@ function getAudioThumbURL(name, type){
 			thumbURL = "cache/audio/" + encodeURI(path.basename(name, ".mp3")) + ".jpg";
 		}
 		else
-			thumbURL = "images/music128.png";
+			thumbURL = "img/music_default.png";
 	}
 	else if (type=="v"){
 	}
