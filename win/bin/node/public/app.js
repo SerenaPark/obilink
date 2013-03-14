@@ -387,36 +387,42 @@ app.get('/getVideoList', function(req,res){
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
 		parser.parseString(data, function (err, result) {	//xml2js parse	        
-			for(var i=0; i<result.shareddir.contents.length; i++){
-				var currList = getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v");
+			if( (result != undefined) &&
+	    		(result.shareddir != undefined) &&
+	    		(result.shareddir.dropbox != undefined) ){
+				for(var i=0; i<result.shareddir.contents.length; i++){
+					var currList = getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v");
 
-				//add video file's playtime durarion.
-				for(var j=0; j<currList.length; j++){
-					var tmpPath = "/contents" + currList[j].path.substring(currList[j].path.lastIndexOf(virtualDirectoryVideo)+virtualDirectoryVideo.length);
-					var infoFile = __dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".info";
-					infoFile = infoFile.replace(/\//g, '\\');
-					//check a previous .info file.
-					if(fs.existsSync(infoFile)) {
-						var fileInfo = fs.readFileSync(infoFile, 'utf8'); 
-						var fileInfoObject = JSON.parse(fileInfo);
-						for(var k=0; k<fileInfoObject.streams.length; k++) {
-							if(fileInfoObject.streams[k].codec_type == 'video') {
-								//add playtime durarion.
-								currList[j].duration = fileInfoObject.streams[k].duration.substring(0, fileInfoObject.streams[k].duration.lastIndexOf('.'));
-								break;
+					//add video file's playtime durarion.
+					for(var j=0; j<currList.length; j++){
+						var tmpPath = "/contents" + currList[j].path.substring(currList[j].path.lastIndexOf(virtualDirectoryVideo)+virtualDirectoryVideo.length);
+						var infoFile = __dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".info";
+						infoFile = infoFile.replace(/\//g, '\\');
+						//check a previous .info file.
+						if(fs.existsSync(infoFile)) {
+							var fileInfo = fs.readFileSync(infoFile, 'utf8'); 
+							var fileInfoObject = JSON.parse(fileInfo);
+							for(var k=0; k<fileInfoObject.streams.length; k++) {
+								if(fileInfoObject.streams[k].codec_type == 'video') {
+									//add playtime durarion.
+									currList[j].duration = fileInfoObject.streams[k].duration.substring(0, fileInfoObject.streams[k].duration.lastIndexOf('.'));
+									break;
+								}
 							}
 						}
 					}
-				}
 
-				//add current list.
-				rtn = rtn.concat(currList);
+					//add current list.
+					rtn = rtn.concat(currList);
+				}
+				var returnJson = JSON.stringify(rtn.sort(comp));
+				if(returnJson.length > 0)
+					res.end(returnJson);
 			}
-			var returnJson = JSON.stringify(rtn.sort(comp));
-			if(returnJson.length > 0)
-				res.end(returnJson);
+			else{
+				res.end("");	
+			}
 		});
->>>>>>> ea31cb24cc09603eaa35630fbc1b4840ab4ead8a
 	});
 });
 
