@@ -402,7 +402,7 @@ app.get('/getVideoList', function(req,res){
 		parser.parseString(data, function (err, result) {	//xml2js parse	        
 			if( (result != undefined) &&
 	    		(result.shareddir != undefined) &&
-	    		(result.shareddir.dropbox != undefined) ){
+	    		(result.shareddir.contents != undefined) ){
 				for(var i=0; i<result.shareddir.contents.length; i++){
 					var currList = getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v");
 
