@@ -195,13 +195,20 @@ app.get('/getAudioList', function(req,res){
 	var rtn = [];
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
-	    parser.parseString(data, function (err, result) {	//xml2js parse	        
-	    	for(var i=0; i<result.shareddir.contents.length; i++){
-	        	rtn = rtn.concat( getList( String(result.shareddir.contents[i].lnpath), audioFileExt, "a") );
+	    parser.parseString(data, function (err, result) {	//xml2js parse
+	    	if( (result != undefined) &&
+	    		(result.shareddir != undefined) &&
+	    		(result.shareddir.contents != undefined) ){
+				for(var i=0; i<result.shareddir.contents.length; i++){
+		        	rtn = rtn.concat( getList( String(result.shareddir.contents[i].lnpath), audioFileExt, "a") );
+		    	}
+	  		    var returnJson = JSON.stringify(rtn.sort(comp));
+			    if(returnJson.length > 0)
+			    	res.end(returnJson);
 	    	}
-  		    var returnJson = JSON.stringify(rtn.sort(comp));
-		    if(returnJson.length > 0)
-		    	res.end(returnJson);
+	    	else{
+	    		res.end("");
+	    	}
 	    });
 	});
 });
@@ -246,16 +253,23 @@ app.get('/getDropboxAudioList', function(req,res){
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
 	    parser.parseString(data, function (err, result) {	//xml2js parse
-	    	 for(var i=0; i<result.shareddir.dropbox.length; i++){
-	    		rtn = rtn.concat( getList(String(result.shareddir.dropbox[i].lnpath), audioFileExt, "a"));
-	    	} 
-	    	/*var vlist = getList( String(result.shareddir.dropbox[0].lnpath), videoFileExt, "v" );	    	
-	    	var alist = getList( String(result.shareddir.dropbox[0].lnpath), audioFileExt, "a" );
-	    	vlist.sort(comp);
-	    	alist.sort(comp);*/
-	    	var returnJson = JSON.stringify(rtn.sort(comp));
-		    if(returnJson.length > 0)
-		    	res.end(returnJson);
+			if( (result != undefined) &&
+	    		(result.shareddir != undefined) &&
+	    		(result.shareddir.dropbox != undefined) ){
+		    	for(var i=0; i<result.shareddir.dropbox.length; i++){
+		    		rtn = rtn.concat( getList(String(result.shareddir.dropbox[i].lnpath), audioFileExt, "a"));
+		    	} 
+		    	/*var vlist = getList( String(result.shareddir.dropbox[0].lnpath), videoFileExt, "v" );	    	
+		    	var alist = getList( String(result.shareddir.dropbox[0].lnpath), audioFileExt, "a" );
+		    	vlist.sort(comp);
+		    	alist.sort(comp);*/
+		    	var returnJson = JSON.stringify(rtn.sort(comp));
+			    if(returnJson.length > 0)
+			    	res.end(returnJson);
+			}
+			else{
+				res.end("");
+			}
 	    });
 	});
 });
@@ -265,12 +279,19 @@ app.get('/getDropboxVideoList', function(req,res){
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
 	    parser.parseString(data, function (err, result) {	//xml2js parse
-	    	for(var i=0; i<result.shareddir.dropbox.length; i++){
-	    		rtn = rtn.concat( getList(String(result.shareddir.dropbox[i].lnpath), videoFileExt, "v"));
-	    	}
-	    	var returnJson = JSON.stringify(rtn.sort(comp));
-		    if(returnJson.length > 0)
-		    	res.end(returnJson);
+	    	if( (result != undefined) &&
+	    		(result.shareddir != undefined) &&
+	    		(result.shareddir.dropbox != undefined) ){
+		    	for(var i=0; i<result.shareddir.dropbox.length; i++){
+		    		rtn = rtn.concat( getList(String(result.shareddir.dropbox[i].lnpath), videoFileExt, "v"));
+		    	}
+		    	var returnJson = JSON.stringify(rtn.sort(comp));
+			    if(returnJson.length > 0)
+			    	res.end(returnJson);
+			}
+			else{				
+				res.end("");
+			}
 	    });
 	});
 });
@@ -280,12 +301,19 @@ app.get('/getVideoList', function(req,res){
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
 	    parser.parseString(data, function (err, result) {	//xml2js parse	        
-	    	for(var i=0; i<result.shareddir.contents.length; i++){
-	        	rtn = rtn.concat( getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v") );
-	    	}
-		    var returnJson = JSON.stringify(rtn.sort(comp));
-		    if(returnJson.length > 0)
-		    	res.end(returnJson);
+	    	if( (result != undefined) &&
+	    		(result.shareddir != undefined) &&
+	    		(result.shareddir.contents != undefined) ){
+		    	for(var i=0; i<result.shareddir.contents.length; i++){
+		        	rtn = rtn.concat( getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v") );
+		    	}
+			    var returnJson = JSON.stringify(rtn.sort(comp));
+			    if(returnJson.length > 0)
+			    	res.end(returnJson);
+			}
+			else{
+				res.end("");	
+			}
 	    });
 	});
 });
