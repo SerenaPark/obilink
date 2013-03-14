@@ -170,23 +170,31 @@ function makeAudioMetaData(){
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
 	    parser.parseString(data, function (err, result) {	//xml2js parse
-	    	//case of shared local directory
-	    	if(result.shareddir.contents){
-		    	for(var i=0; i<result.shareddir.contents.length; i++){
-		     		var contentsDir = __dirname + "\\contents\\" + result.shareddir.contents[i].lnpath;
-		     		var items = fs.readdirSync(path.join(contentsDir));
-		     		makeThumbnail(contentsDir, items);
+	    	if( (result != undefined) &&
+	    		(result.shareddir != undefined) &&
+	    		(result.shareddir.contents != undefined) ){	    		
+		    	//case of shared local directory
+		    	if(result.shareddir.contents){
+			    	for(var i=0; i<result.shareddir.contents.length; i++){
+			     		var contentsDir = __dirname + "\\contents\\" + result.shareddir.contents[i].lnpath;
+			     		var items = fs.readdirSync(path.join(contentsDir));
+			     		makeThumbnail(contentsDir, items);
+			    	}
 		    	}
+    		}	    	
+	    	if( (result != undefined) &&
+	    		(result.shareddir != undefined) &&
+	    		(result.shareddir.dropbox != undefined) ){	    		
+		    	//case of dropbox 
+		    	if(result.shareddir.dropbox){
+				    for(var i=0; i<result.shareddir.dropbox.length; i++){
+			     		var contentsDir = __dirname + "\\contents\\" + result.shareddir.dropbox[i].lnpath;
+			     		var items = fs.readdirSync(path.join(contentsDir));
+			     		makeThumbnail(contentsDir, items);
+				    }
+		    	}	
 	    	}
-	    	//case of dropbox 
-	    	if(result.shareddir.dropbox){
-			    for(var i=0; i<result.shareddir.dropbox.length; i++){
-		     		var contentsDir = __dirname + "\\contents\\" + result.shareddir.dropbox[i].lnpath;
-		     		var items = fs.readdirSync(path.join(contentsDir));
-		     		makeThumbnail(contentsDir, items);
-			    }
-	    	}
-	    });
+		});
 	});
 }
 
@@ -300,84 +308,88 @@ app.get('/getDropboxVideoList', function(req,res){
 function makeVideoMetaData() {
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
-		parser.parseString(data, function (err, result) {	//xml2js parse	        
-			for(var i=0; i<result.shareddir.contents.length; i++){
-				var currList = getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v");
-				for(var j=0; j<currList.length; j++) {
-					var tmpPath = "/contents" + currList[j].path.substring(currList[j].path.lastIndexOf(virtualDirectoryVideo)+virtualDirectoryVideo.length);
-					var pathToMovie =  __dirname + decSPACE(tmpPath);
-					pathToMovie = pathToMovie.replace(/\//g, '\\');
+		parser.parseString(data, function (err, result) {	//xml2js parse
+			if( (result != undefined) &&
+	    		(result.shareddir != undefined) &&
+	    		(result.shareddir.contents != undefined) ){
+				for(var i=0; i<result.shareddir.contents.length; i++){
+					var currList = getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v");
+					for(var j=0; j<currList.length; j++) {
+						var tmpPath = "/contents" + currList[j].path.substring(currList[j].path.lastIndexOf(virtualDirectoryVideo)+virtualDirectoryVideo.length);
+						var pathToMovie =  __dirname + decSPACE(tmpPath);
+						pathToMovie = pathToMovie.replace(/\//g, '\\');
 
-					var infoFile = __dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".info";
-					infoFile = infoFile.replace(/\//g, '\\');
-					var infoPath = infoFile.substring(0, infoFile.lastIndexOf('\\'));
-					var infoFileName = infoFile.substring(infoFile.lastIndexOf('\\')+1);
+						var infoFile = __dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".info";
+						infoFile = infoFile.replace(/\//g, '\\');
+						var infoPath = infoFile.substring(0, infoFile.lastIndexOf('\\'));
+						var infoFileName = infoFile.substring(infoFile.lastIndexOf('\\')+1);
 
-					var thumbnailFile = __dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".jpg";
-					thumbnailFile = thumbnailFile.replace(/\//g, '\\');
-					var thumbnailPath = thumbnailFile.substring(0, thumbnailFile.lastIndexOf('\\'));
-					var thumbnailFileName = thumbnailFile.substring(thumbnailFile.lastIndexOf('\\')+1, thumbnailFile.lastIndexOf('.jpg'));
+						var thumbnailFile = __dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".jpg";
+						thumbnailFile = thumbnailFile.replace(/\//g, '\\');
+						var thumbnailPath = thumbnailFile.substring(0, thumbnailFile.lastIndexOf('\\'));
+						var thumbnailFileName = thumbnailFile.substring(thumbnailFile.lastIndexOf('\\')+1, thumbnailFile.lastIndexOf('.jpg'));
 
-					//-------------------------------------------------------------------------------------------
-					//check a previous .info file.
-					if(fs.existsSync(infoFile)) {
-					}
-					else {
-						// make a directory for .info file.
-						fs.mkdirRecursiveSync(infoPath);
+						//-------------------------------------------------------------------------------------------
+						//check a previous .info file.
+						if(fs.existsSync(infoFile)) {
+						}
+						else {
+							// make a directory for .info file.
+							fs.mkdirRecursiveSync(infoPath);
 
-						//make .info file for video file.
-						var ffprobe_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + infoPath + "&"
-										+ " " + "ffprobe -show_streams -pretty -loglevel quiet -print_format json -i " + "\"" + pathToMovie + "\""
-										+ " " + ">" + " " + "\"" + infoFileName + "\"";
-						var exec = require("child_process").exec;
-						console.log("Video-File: " + "ffprobe process for information " + infoFileName + " was started.");
-						exec(ffprobe_cmd, function (error, stdout, stderr) {
-							console.log("Video-File: " + "ffprobe process for  information " + infoFileName + " was terminated.");
-							if(error) {
-								console.log("Video-Info : " + error);
-							}
-							if(stderr) {
-								console.log("Video-Info : " + stderr);
-							}
-						});
-					}
-
-					//check a previous thumbnail file.
-					if(fs.existsSync(thumbnailFile)) {
-					}
-					else {
-						// make a directory for thumbnail files.
-						fs.mkdirRecursiveSync(thumbnailPath);
-
-						//check a requested video file.
-						if(fs.existsSync(pathToMovie)) {
-
-							//make .jpg thumbnail file for video file.
-							var proc = new ffmpeg({
-								source: pathToMovie,  // input source, required
-								timeout: 300*60, // timout of the spawned ffmpeg sub-processes in seconds (optional, defaults to 30)
-								priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
-								logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
-								nolog: false        // completely disable logging (optional, defaults to false)
-							});
-							proc.setFfmpegPath(ffmpegBinPath+'\\ffmpeg');
-							proc.withSize('128x128');
-							// take 2 screenshots at predefined timemarks(50% and 1.0 sec)
-							//.takeScreenshots({ count: 2, timemarks: [ '50%', '1.0' ], filename: '%f' }, thumbnailPath, function(error, filenames) {
-							// take 1 screenshots at predefined timemarks
-							proc.takeScreenshots({ count: 1, timemarks: [ '10%' ], filename: thumbnailFileName }, thumbnailPath, function(error, filenames) {
+							//make .info file for video file.
+							var ffprobe_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + infoPath + "&"
+											+ " " + "ffprobe -show_streams -pretty -loglevel quiet -print_format json -i " + "\"" + pathToMovie + "\""
+											+ " " + ">" + " " + "\"" + infoFileName + "\"";
+							var exec = require("child_process").exec;
+							console.log("Video-File: " + "ffprobe process for information " + infoFileName + " was started.");
+							exec(ffprobe_cmd, function (error, stdout, stderr) {
+								console.log("Video-File: " + "ffprobe process for  information " + infoFileName + " was terminated.");
 								if(error) {
-									console.log("Screenshots: " + error);
+									console.log("Video-Info : " + error);
 								}
-								else {
-									console.log("Screenshots: "+filenames+" was saved.");
+								if(stderr) {
+									console.log("Video-Info : " + stderr);
 								}
 							});
 						}
+
+						//check a previous thumbnail file.
+						if(fs.existsSync(thumbnailFile)) {
+						}
+						else {
+							// make a directory for thumbnail files.
+							fs.mkdirRecursiveSync(thumbnailPath);
+
+							//check a requested video file.
+							if(fs.existsSync(pathToMovie)) {
+
+								//make .jpg thumbnail file for video file.
+								var proc = new ffmpeg({
+									source: pathToMovie,  // input source, required
+									timeout: 300*60, // timout of the spawned ffmpeg sub-processes in seconds (optional, defaults to 30)
+									priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
+									logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
+									nolog: false        // completely disable logging (optional, defaults to false)
+								});
+								proc.setFfmpegPath(ffmpegBinPath+'\\ffmpeg');
+								proc.withSize('128x128');
+								// take 2 screenshots at predefined timemarks(50% and 1.0 sec)
+								//.takeScreenshots({ count: 2, timemarks: [ '50%', '1.0' ], filename: '%f' }, thumbnailPath, function(error, filenames) {
+								// take 1 screenshots at predefined timemarks
+								proc.takeScreenshots({ count: 1, timemarks: [ '10%' ], filename: thumbnailFileName }, thumbnailPath, function(error, filenames) {
+									if(error) {
+										console.log("Screenshots: " + error);
+									}
+									else {
+										console.log("Screenshots: "+filenames+" was saved.");
+									}
+								});
+							}
+						}
 					}
 				}
-			}
+			}			
 		});
 	});
 }
