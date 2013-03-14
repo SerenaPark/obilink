@@ -141,7 +141,8 @@ function makeThumbnail(contentsDir, items){
 		if ( audioFileExt.indexOf(extname) >= 0 ){
 			//check exist thumbnail
 			if (!fs.existsSync(makeAudioThumbnailPath(filepath, ".mp3"))){
-				//2. parsing mp3 metadata							
+				//2. parsing mp3 metadata
+				console.log(filepath);
 				var parser = new musicmetadata(filepath, fs.createReadStream(filepath));
 				var filename = path.basename(items[i]);
 				parser.on('metadata', function(result) {
