@@ -4,7 +4,6 @@
 #include <QXmlStreamReader>
 #include <QXmlQuery>
 #include <QMessageBox>
-
 #include <QDir>
 #include <QDebug>
 #include <Windows.h>
@@ -12,14 +11,15 @@
 /* File     : xmlManager.cpp
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0.4
- * Date     : 2013-02-08
+ * Version  : 2.0.6
+ * Date     : 2013-03-15
  */
 
 CXmlManager* CXmlManager::m_instance = NULL;
 
 CXmlManager::CXmlManager() :
     m_sharedDirListFile("./conf.xml"),
+    m_settingFile("./setting"),
     m_dropboxShareMode(false)
 {
 }
@@ -47,6 +47,63 @@ void CXmlManager::destroy()
     }
 }
 
+QString CXmlManager::loadSetting()
+{
+    QString video_resolution_type = "MID";      // Default video setting value
+    if (!m_settingFile.open(QIODevice::ReadOnly)) {
+        qDebug() << "Setting File is not exist. Create new setting file now" << endl;
+        if (saveSetting("MID")) {
+            return video_resolution_type;
+        }
+    }
+
+    QTextStream in(&m_settingFile);
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+        if (line.contains("HIGH")) {
+            video_resolution_type = "HIGH";
+        } else if (line.contains("MID")) {
+            video_resolution_type = "MID";
+        } else if (line.contains("LOW")) {
+            video_resolution_type = "LOW";
+        } else {
+            qDebug() << "Error in loadSetting()" << endl;
+        }
+    }
+
+    m_settingFile.close();
+    return video_resolution_type;
+}
+
+bool CXmlManager::saveSetting(QString setting)
+{
+    m_settingFile.open(QIODevice::WriteOnly);
+
+    m_settingFile.write("{");
+    m_settingFile.write("\n");
+
+    if (setting == "HIGH") {
+        m_settingFile.write("\"video_resolution_type\" : \"HIGH\"");
+        m_settingFile.write("\n");
+        m_settingFile.write("\"video_resolution_size\" : \"1024x768\"");
+    } else if (setting == "MID") {
+        m_settingFile.write("\"video_resolution_type\" : \"MID\"");
+        m_settingFile.write("\n");
+        m_settingFile.write("\"video_resolution_size\" : \"640x480\"");
+    } else if (setting == "LOW") {
+        m_settingFile.write("\"video_resolution_type\" : \"LOW\"");
+        m_settingFile.write("\n");
+        m_settingFile.write("\"video_resolution_size\" : \"480x320\"");
+    } else {
+        qDebug() << "Error in saveSetting()" << endl;
+    }
+
+    m_settingFile.write("\n");
+    m_settingFile.write("}");
+    m_settingFile.close();
+
+    return true;
+}
 
 
 bool CXmlManager::saveXML()

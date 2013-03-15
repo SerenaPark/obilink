@@ -8,8 +8,8 @@
 /* File     : xmlManager.h
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0.1
- * Date     : 2013-02-07
+ * Version  : 2.0.2
+ * Date     : 2013-03-15
  */
 
 class CXmlManager
@@ -27,6 +27,7 @@ private:
 private:
     static CXmlManager* m_instance;
     QFile m_sharedDirListFile;                              // conf.xml
+    QFile m_settingFile;
     QProcess m_lnProc;                                      // a process to create symbolic directory
     QProcess m_rjProc;                                      // a process to remove symbolic directory
     QStringList m_localShareDirList;                        // list of share directory path
@@ -39,6 +40,8 @@ public:
     static void destroy();
     bool saveXML();                                         // save share directory info to conf.xml
     bool loadXML();                                         // load share directory info from conf.xml
+    bool saveSetting(QString setting);                      // save video resoultion setting to setting file
+    QString loadSetting();                                  // load video resoultion setting from setting file
     QStringList getLocalShareDirList();
     QStringList getLocalSymbolicDirList();
     bool appendShareDir(QString);                           // append share directory path to list
