@@ -524,8 +524,34 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 	if(fs.existsSync(pathToMovie)) {
 		var fileExt = pathToMovie.substring(pathToMovie.lastIndexOf('.')); 
 		fileExt = fileExt.toLowerCase();
-		//.mp4 video file is serviced directly without converting and others are converted.
+		var mp4DirectService = 'false';
+
+		//If mp4DirectService is available then .mp4 video file is serviced directly without converting and others are converted.
 		if ( fileExt == '.mp4' ) {
+			var infoFile = __dirname + '/' + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".info";;
+			infoFile = infoFile.replace(/\//g, '\\');
+			//check .mp4 video file's profile.
+			if(fs.existsSync(infoFile)) {
+				var fileInfo = fs.readFileSync(infoFile, 'utf8'); 
+				var fileInfoObject = JSON.parse(fileInfo);
+				for(var k=0; k<fileInfoObject.streams.length; k++) {
+					if(fileInfoObject.streams[k].codec_type == 'video') {
+						var codec_name = fileInfoObject.streams[k].codec_name.toLowerCase();
+						var profile = fileInfoObject.streams[k].profile.toLowerCase();
+						var level = fileInfoObject.streams[k].level;
+						var profile_main = profile.search(/main/i);
+						var profile_baseline = profile.search(/baseline/i);
+						console.log("Video-File: mp4 file: codec_name="+codec_name+", profile="+profile+", level="+level);
+						if(codec_name == 'h264' && level <= 30 && (profile_main != -1 || profile_baseline != -1)) {
+							mp4DirectService = 'true';
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if ( mp4DirectService == 'true' ) {
 			var moviePath = pathToMovie.substring(pathToMovie.indexOf('contents'));
 			moviePath = moviePath.replace(/\\/g, '/');
 			res.redirect(moviePath);
