@@ -7,7 +7,7 @@ var musicmetadata = require('musicmetadata');
 //var Iconv  = require('iconv').Iconv;
 var confxmlPath = __dirname + "/../../conf.xml";
 //should use only lower case characters when specifying file extension.
-var videoFileExt = [".avi", ".mp4", ".mov"];
+var videoFileExt = [".avi", ".mp4", ".mov", ".wmv", ".mpg"];
 var audioFileExt = [".mp3"];
 var cacheDirectoryVideo = "cache/video";
 var virtualDirectoryVideo = "__vd__video";
@@ -308,6 +308,87 @@ app.get('/getDropboxVideoList', function(req,res){
 	});
 });
 
+function makeVideoInfoFiles(catagory, filepath) {
+	var tmpPath = "/contents" + filepath.substring(filepath.lastIndexOf(virtualDirectoryVideo)+virtualDirectoryVideo.length);
+	var pathToMovie =  __dirname + decSPACE(tmpPath);
+	pathToMovie = pathToMovie.replace(/\//g, '\\');
+
+	if(catagory == 'info') {
+		var infoFile = __dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".info";
+		infoFile = infoFile.replace(/\//g, '\\');
+		var infoPath = infoFile.substring(0, infoFile.lastIndexOf('\\'));
+		var infoFileName = infoFile.substring(infoFile.lastIndexOf('\\')+1);
+
+		//-------------------------------------------------------------------------------------------
+		//check a previous .info file.
+		if(fs.existsSync(infoFile)) {
+		}
+		else {
+			// make a directory for .info file.
+			fs.mkdirRecursiveSync(infoPath);
+
+			//make .info file for video file.
+			var ffprobe_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + infoPath + "&"
+							+ " " + "ffprobe -show_streams -pretty -loglevel quiet -print_format json -i " + "\"" + pathToMovie + "\""
+							+ " " + ">" + " " + "\"" + infoFileName + "\"";
+			var exec = require("child_process").exec;
+			console.log("Video-File: " + "ffprobe process for information " + infoFileName + " was started.");
+			exec(ffprobe_cmd, function (error, stdout, stderr) {
+				console.log("Video-File: " + "ffprobe process for  information " + infoFileName + " was terminated.");
+				if(error) {
+					console.log("Video-Info : " + error);
+				}
+				if(stderr) {
+					console.log("Video-Info : " + stderr);
+				}
+			});
+		}
+	}
+
+	if(catagory == 'thumb') {
+		var thumbnailFile = __dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".jpg";
+		thumbnailFile = thumbnailFile.replace(/\//g, '\\');
+		var thumbnailPath = thumbnailFile.substring(0, thumbnailFile.lastIndexOf('\\'));
+		var thumbnailFileName = thumbnailFile.substring(thumbnailFile.lastIndexOf('\\')+1, thumbnailFile.lastIndexOf('.jpg'));
+
+		//check a previous thumbnail file.
+		if(fs.existsSync(thumbnailFile)) {
+		}
+		else {
+			// make a directory for thumbnail files.
+			fs.mkdirRecursiveSync(thumbnailPath);
+
+			//check a requested video file.
+			if(fs.existsSync(pathToMovie)) {
+
+				//make .jpg thumbnail file for video file.
+				var proc = new ffmpeg({
+					source: pathToMovie,  // input source, required
+					timeout: 300*60, // timout of the spawned ffmpeg sub-processes in seconds (optional, defaults to 30)
+					priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
+					logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
+					nolog: false        // completely disable logging (optional, defaults to false)
+				});
+				proc.setFfmpegPath(ffmpegBinPath+'\\ffmpeg');
+				proc.withSize('128x128');
+				// take 2 screenshots at predefined timemarks(50% and 1.0 sec)
+				//.takeScreenshots({ count: 2, timemarks: [ '50%', '1.0' ], filename: '%f' }, thumbnailPath, function(error, filenames) {
+				// take 1 screenshots at predefined timemarks
+				proc.takeScreenshots({ count: 1, timemarks: [ '10%' ], filename: thumbnailFileName }, thumbnailPath, function(error, filenames) {
+					if(error) {
+						console.log("Screenshots: " + error);
+						fs.createReadStream(__dirname+"\\web\\img\\video_default.jpg").pipe(fs.createWriteStream(thumbnailFile));
+						console.log("Screenshots: video_default.jpg is copied to " + thumbnailFileName + ".jpg");
+					}
+					else {
+						console.log("Screenshots: "+filenames+" was saved.");
+					}
+				});
+			}
+		}
+	}
+}
+
 function makeVideoMetaData() {
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
@@ -318,78 +399,10 @@ function makeVideoMetaData() {
 				for(var i=0; i<result.shareddir.contents.length; i++){
 					var currList = getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v");
 					for(var j=0; j<currList.length; j++) {
-						var tmpPath = "/contents" + currList[j].path.substring(currList[j].path.lastIndexOf(virtualDirectoryVideo)+virtualDirectoryVideo.length);
-						var pathToMovie =  __dirname + decSPACE(tmpPath);
-						pathToMovie = pathToMovie.replace(/\//g, '\\');
-
-						var infoFile = __dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".info";
-						infoFile = infoFile.replace(/\//g, '\\');
-						var infoPath = infoFile.substring(0, infoFile.lastIndexOf('\\'));
-						var infoFileName = infoFile.substring(infoFile.lastIndexOf('\\')+1);
-
-						var thumbnailFile = __dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".jpg";
-						thumbnailFile = thumbnailFile.replace(/\//g, '\\');
-						var thumbnailPath = thumbnailFile.substring(0, thumbnailFile.lastIndexOf('\\'));
-						var thumbnailFileName = thumbnailFile.substring(thumbnailFile.lastIndexOf('\\')+1, thumbnailFile.lastIndexOf('.jpg'));
-
-						//-------------------------------------------------------------------------------------------
-						//check a previous .info file.
-						if(fs.existsSync(infoFile)) {
-						}
-						else {
-							// make a directory for .info file.
-							fs.mkdirRecursiveSync(infoPath);
-
-							//make .info file for video file.
-							var ffprobe_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + infoPath + "&"
-											+ " " + "ffprobe -show_streams -pretty -loglevel quiet -print_format json -i " + "\"" + pathToMovie + "\""
-											+ " " + ">" + " " + "\"" + infoFileName + "\"";
-							var exec = require("child_process").exec;
-							console.log("Video-File: " + "ffprobe process for information " + infoFileName + " was started.");
-							exec(ffprobe_cmd, function (error, stdout, stderr) {
-								console.log("Video-File: " + "ffprobe process for  information " + infoFileName + " was terminated.");
-								if(error) {
-									console.log("Video-Info : " + error);
-								}
-								if(stderr) {
-									console.log("Video-Info : " + stderr);
-								}
-							});
-						}
-
-						//check a previous thumbnail file.
-						if(fs.existsSync(thumbnailFile)) {
-						}
-						else {
-							// make a directory for thumbnail files.
-							fs.mkdirRecursiveSync(thumbnailPath);
-
-							//check a requested video file.
-							if(fs.existsSync(pathToMovie)) {
-
+						//make .info information file for video file.
+						makeVideoInfoFiles('info', currList[j].path);
 								//make .jpg thumbnail file for video file.
-								var proc = new ffmpeg({
-									source: pathToMovie,  // input source, required
-									timeout: 300*60, // timout of the spawned ffmpeg sub-processes in seconds (optional, defaults to 30)
-									priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
-									logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
-									nolog: false        // completely disable logging (optional, defaults to false)
-								});
-								proc.setFfmpegPath(ffmpegBinPath+'\\ffmpeg');
-								proc.withSize('128x128');
-								// take 2 screenshots at predefined timemarks(50% and 1.0 sec)
-								//.takeScreenshots({ count: 2, timemarks: [ '50%', '1.0' ], filename: '%f' }, thumbnailPath, function(error, filenames) {
-								// take 1 screenshots at predefined timemarks
-								proc.takeScreenshots({ count: 1, timemarks: [ '10%' ], filename: thumbnailFileName }, thumbnailPath, function(error, filenames) {
-									if(error) {
-										console.log("Screenshots: " + error);
-									}
-									else {
-										console.log("Screenshots: "+filenames+" was saved.");
-									}
-								});
-							}
-						}
+						makeVideoInfoFiles('thumb', currList[j].path);
 					}
 				}
 			}			
@@ -420,10 +433,28 @@ app.get('/getVideoList', function(req,res){
 							for(var k=0; k<fileInfoObject.streams.length; k++) {
 								if(fileInfoObject.streams[k].codec_type == 'video') {
 									//add playtime durarion.
-									currList[j].duration = fileInfoObject.streams[k].duration.substring(0, fileInfoObject.streams[k].duration.lastIndexOf('.'));
+									if(fileInfoObject.streams[k].duration) {
+										currList[j].duration = fileInfoObject.streams[k].duration.substring(0, fileInfoObject.streams[k].duration.lastIndexOf('.'));
+									}
+									else {
+										currList[j].duration = 'not available';
+									}
 									break;
 								}
 							}
+						}
+						else {
+							// Even though thumbnail files are made in makeVideoMetaData() at application's starting time,
+							// users can try to add another file to "Share Folders" that he seleced directly after pressing ObiLink App's Sharing Button.
+
+							//make .info information file for video file.
+							makeVideoInfoFiles('info', currList[j].path);
+
+							// Even though .info information file is created here,
+							// we do set currList[j].duration to 'refresh' to indicate user to represh videolist.
+							// the reason that we do not wait and read the new made .info file
+							// is to avoid dead state just in case that there is an error or long delay time. 
+							currList[j].duration = 'refresh';
 						}
 					}
 
@@ -456,48 +487,22 @@ app.get("/"+virtualDirectoryVideoThumbnail+"/*", function(req, res){
 		//check a previous thumbnail file.
 		if(fs.existsSync(thumbnailFile)) {
 			res.sendfile(thumbnailFile);
-			console.log("Screenshots: "+thumbnailFile.substring(thumbnailFile.lastIndexOf('\\')+1)+" was replied.");
+			console.log("Screenshots(O): "+thumbnailFile.substring(thumbnailFile.lastIndexOf('\\')+1)+" was replied.");
 		}
 		else {
-			// Even though thumbnail files are made in makeVideoMetaData() at application's starting time.
-			// Sometimes, they have delay time, so next code is for just in case that they have delay time.
-
-			// make a directory for thumbnail files.
-			fs.mkdirRecursiveSync(thumbnailPath);
+			// Even though thumbnail files are made in makeVideoMetaData() at application's starting time,
+			// users can try to add another file to "Share Folders" that he seleced directly after pressing ObiLink App's Sharing Button.
 
 			//check a requested video file.
 			if(fs.existsSync(pathToMovie)) {
-
-				//make .jpg thumbnail file for video file.
-				var proc = new ffmpeg({
-					source: pathToMovie,  // input source, required
-					timeout: 300*60, // timout of the spawned ffmpeg sub-processes in seconds (optional, defaults to 30)
-					priority: 0,          // default priority for all ffmpeg sub-processes (optional, defaults to 0 which is no priorization)
-					logger: null,        // set a custom [winston](https://github.com/flatiron/winston) logging instance (optional, default null which will cause fluent-ffmpeg to spawn a winston console logger)
-					nolog: false        // completely disable logging (optional, defaults to false)
-				});
-				proc.setFfmpegPath(ffmpegBinPath+'\\ffmpeg');
-				proc.withSize('128x128');
-				// take 2 screenshots at predefined timemarks(50% and 1.0 sec)
-				//.takeScreenshots({ count: 2, timemarks: [ '50%', '1.0' ], filename: '%f' }, thumbnailPath, function(error, filenames) {
-				// take 1 screenshots at predefined timemarks
-				proc.takeScreenshots({ count: 1, timemarks: [ '10%' ], filename: thumbnailFileName }, thumbnailPath, function(error, filenames) {
-					if(error) {
-						console.log("Screenshots: " + error);
-					}
-					else {
-						console.log("Screenshots: "+filenames+" was saved.");
-					}
-					if(filenames) {
+				// watch if thumbnailFile is created.
+				fs.watchFile(thumbnailFile, function (curr, prev) {
+					fs.unwatchFile(thumbnailFile);
 						res.sendfile(thumbnailFile);
-						console.log("Screenshots: "+filenames+" was replied.");
-					}
-					else {
-						res.end();
-						//or send default image.
-						//res.sendfile( __dirname+"\\web\\img\\video128.png");
-					}
+					console.log("Screenshots(N): "+thumbnailFile.substring(thumbnailFile.lastIndexOf('\\')+1)+" was replied.");
 				});
+				//make .jpg thumbnail file for video file.
+				makeVideoInfoFiles('thumb', virtualDirectoryVideo + "/" + req.params[0].substring(0, req.params[0].lastIndexOf('.')));
 			}
 			else {
 				res.end();
@@ -528,8 +533,34 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 	if(fs.existsSync(pathToMovie)) {
 		var fileExt = pathToMovie.substring(pathToMovie.lastIndexOf('.')); 
 		fileExt = fileExt.toLowerCase();
-		//.mp4 video file is serviced directly without converting and others are converted.
+		var mp4DirectService = 'false';
+
+		//If mp4DirectService is available then .mp4 video file is serviced directly without converting and others are converted.
 		if ( fileExt == '.mp4' ) {
+			var infoFile = __dirname + '/' + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".info";;
+			infoFile = infoFile.replace(/\//g, '\\');
+			//check .mp4 video file's profile.
+			if(fs.existsSync(infoFile)) {
+				var fileInfo = fs.readFileSync(infoFile, 'utf8'); 
+				var fileInfoObject = JSON.parse(fileInfo);
+				for(var k=0; k<fileInfoObject.streams.length; k++) {
+					if(fileInfoObject.streams[k].codec_type == 'video') {
+						var codec_name = fileInfoObject.streams[k].codec_name.toLowerCase();
+						var profile = fileInfoObject.streams[k].profile.toLowerCase();
+						var level = fileInfoObject.streams[k].level;
+						var profile_main = profile.search(/main/i);
+						var profile_baseline = profile.search(/baseline/i);
+						console.log("Video-File: mp4 file: codec_name="+codec_name+", profile="+profile+", level="+level);
+						if(codec_name == 'h264' && level <= 30 && (profile_main != -1 || profile_baseline != -1)) {
+							mp4DirectService = 'true';
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if ( mp4DirectService == 'true' ) {
 			var moviePath = pathToMovie.substring(pathToMovie.indexOf('contents'));
 			moviePath = moviePath.replace(/\\/g, '/');
 			res.redirect(moviePath);
