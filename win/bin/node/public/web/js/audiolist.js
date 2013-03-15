@@ -261,8 +261,17 @@
 		};
 
 		AudioList.prototype.onError = function(req, status, error){
-			//alert("code : " + req.status + "\r\nmessage : " + req.reponseText);
-			console.log("code : " + req.status + "\r\nmessage : " + req.responseText);
+		//onError
+		//no contents display
+			$(".nocontent").ready(function(){
+				$("#slide").css("display", "none");
+				$("div.prev, div.next").css("display", "none");
+			});					
+			var innerHTML = "<div class='nocontent'>\
+								<div class='nolist'>재생할 콘텐츠가 없습니다</div>\
+								<div id='bg' class='audio'>\
+							</div>";			
+			$("#slide").parent().append(innerHTML);
 		};
 
 		AudioList.prototype.getInnerHTML = function(data, type){
