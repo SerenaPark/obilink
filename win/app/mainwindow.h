@@ -7,8 +7,8 @@
 /* File     : mainwindow.h
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.1
- * Date     : 2013-03-13
+ * Version  : 2.2
+ * Date     : 2013-03-15
  */
 
 namespace Ui {
@@ -39,7 +39,6 @@ private:
     void displayShareAddress(QString addr);                     // display server IP address on UI
     void displayQRCode(QString addr);                           // display server QR code of IP address on UI
     QString getIPAddress();                                     // get server IP address
-    void writeSetting(QString str);                             // write file to record setting
 
 private slots:
     void on_btn_add_clicked();                                  // trigger with PushButton(btn_plus)
