@@ -349,24 +349,37 @@
 		};
 
 		AudioList.prototype.onReadAudioList = function(data){
-			//set HTML for landscape
-			var innerHTML = this.getInnerHTML(data);
-			$("#slide .scroll").append(innerHTML);
-			$("#selectedTitle").text(data[0].name);
-			$("#bg").css('background-image','url(\"'+data[0].thumb+'\")');
-			$("#player").attr("src", data[0].path);
-			//set footer title
-			$("#footer .wrap .title > h3").text(data[0].name);
-			//set time
-			var audio = document.getElementById("player");
-			audio.addEventListener("loadedmetadata", function(){
-				//display time when metadata loaded
-				$("#footer .wrap .time_end").text(formatSecondsAsTime(this.duration));
-			});
+			if(data.length == 0){
+				//no contents display				
+				$(".nocontent").ready(function(){
+					$("#slide").css("display", "none");
+					$("div.prev, div.next").css("display", "none");
+				});	
+				var innerHTML = "<div class='nocontent'>\
+									<div class='nolist'>재생할 콘텐츠가 없습니다</div>\
+									<div id='bg' class='audio'>\
+								</div>";						
+				$("#slide").parent().append(innerHTML);				
+			} else {
+				//set HTML for landscape
+				var innerHTML = this.getInnerHTML(data);
+				$("#slide .scroll").append(innerHTML);
+				$("#selectedTitle").text(data[0].name);
+				$("#bg").css('background-image','url(\"'+data[0].thumb+'\")');
+				$("#player").attr("src", data[0].path);
+				//set footer title
+				$("#footer .wrap .title > h3").text(data[0].name);
+				//set time
+				var audio = document.getElementById("player");
+				audio.addEventListener("loadedmetadata", function(){
+					//display time when metadata loaded
+					$("#footer .wrap .time_end").text(formatSecondsAsTime(this.duration));
+				});
 
-			this.registEventHandleOnSlideCtrl();
+				this.registEventHandleOnSlideCtrl();
 
-			this.refreshScroll();
+				this.refreshScroll();
+			}
 		};
 
 		AudioList.prototype.readAudioList = function(){

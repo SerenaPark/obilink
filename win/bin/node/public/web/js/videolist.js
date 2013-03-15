@@ -214,22 +214,35 @@
 		};
 
 		VideoList.prototype.onReadVideoList = function(data){
-			//set HTML for landscape
-			var innerHTML = this.getInnerHTML(data);
-			$("#slide .scroll").append(innerHTML);
-			$("#selectedTitle").text(data[0].name);
-			$("#bg").css("background-image","url(\""+data[0].thumb+"\")");
+			if(data.length == 0){
+				//no contents display
+				$(".nocontent").ready(function(){
+					$("#slide").css("display", "none");
+					$("div.prev, div.next").css("display", "none");
+				});					
+				var innerHTML = "<div class='nocontent'>\
+									<div class='nolist'>재생할 콘텐츠가 없습니다</div>\
+									<div id='bg' class='video'>\
+								</div>";			
+				$("#slide").parent().append(innerHTML);				
+			} else {
+				//set HTML for landscape
+				var innerHTML = this.getInnerHTML(data);
+				$("#slide .scroll").append(innerHTML);
+				$("#selectedTitle").text(data[0].name);
+				$("#bg").css("background-image","url(\""+data[0].thumb+"\")");
 
-			//set footer title
-			$("#footer .wrap .title > h3#first").text(data[0].name);
-			if(data[0].duration) {
-				$("#footer .wrap .title > h3#second").text("< Time: " + data[0].duration + " >");
+				//set footer title
+				$("#footer .wrap .title > h3#first").text(data[0].name);
+				if(data[0].duration) {
+					$("#footer .wrap .title > h3#second").text("< Time: " + data[0].duration + " >");
+				}
+				$("#footer .wrap .title > p").attr("href", data[0].path);
+
+				this.registEventHandleOnSlideCtrl();
+
+				this.refreshScroll();
 			}
-			$("#footer .wrap .title > p").attr("href", data[0].path);
-
-			this.registEventHandleOnSlideCtrl();
-
-			this.refreshScroll();
 		};
 
 		VideoList.prototype.readVideoList = function(){
