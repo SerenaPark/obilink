@@ -268,20 +268,33 @@
 		AudioList.prototype.getInnerHTML = function(data, type){
 			var innerHTML = "";
 			var index = 0;
+			var ison;
+			var songTitle;
 			for(var i=0; i<data.length/5; i++){
 				if(index == 0)
 					innerHTML += "<ul class='on'>";
 				else
 					innerHTML += "<ul>";
 				for(var j=0; j<5 && index<data.length; j++){
-					if(index == 0)
-						innerHTML += "<li class='on' data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\">";
-					else
-						innerHTML += "<li data_title=\""+ data[index].name +"\" data_path=\""+ data[index].path +"\">";
+					if(index == 0){
+						ison = "class='on' ";
+					}						
+					else{
+						ison = ""
+					}
+					innerHTML += "<li " + ison;
+					innerHTML += "data_filename=\"" + data[index].name + "\"";
+					if(data[index].title)
+						innerHTML += "data_title=\"" + data[index].title + "\"";
+					if(data[index].artist)
+						innerHTML += "data_artist=\"" + data[index].artist + "\"";
+					if(data[index].album)
+						innerHTML += "data_album=\"" + data[index].album + "\"";
+					innerHTML += "data_path=\"" + data[index].path + "\">";
 
 					innerHTML += "<img src=" + data[index].thumb + " alt=''> \
 								<h2> \
-						            <b>" + data[index].name + "</b> \
+						            <b>" + this.getAudioName(data[index]) + "</b> \
 						        </h2> \
 								<span class='ico symbol'>e</span> \
 						        </li>";
@@ -292,7 +305,21 @@
 			return innerHTML;
 		};
 
+		AudioList.prototype.getAudioName = function(data){
+			var songTitle;
+			if(data.title){
+				if(data.artist)
+					songTitle = data.title + " (" + data.artist + ")";
+				else
+					songTitle = data.title;
+			}
+			else
+				songTitle = data.name;
+			return songTitle;
+		};
+
 		AudioList.prototype.registEventHandleOnSlideCtrl = function(){
+			var that = this;
 			//assing handler			
 			$("#slide li").click(function(){
 				var i = $(this).find("img").attr("src");
@@ -306,17 +333,17 @@
 				$(this).parent().addClass("on");
 
 				//set selected item's title on landscape
-				$("#selectedTitle").text($(this).attr("data_title"));
-
-				//set audio tag source
-				$("#player").attr("src", $(this).attr("data_path").replace("`", "'"));
+				var tempThis = $(this);
+				var data = {
+					title: tempThis.attr("data_title"),
+					name: tempThis.attr("data_filename"),
+					artist: tempThis.attr("data_artist"), 
+					album : tempThis.attr("data_album")
+				};
+				that.displaySelectedAudio(data);
 
 				//set footer play button
 				$("#footer .wrap .play").text("e");
-
-				//set footer title
-				$("#footer .wrap .title > h3").text($(this).attr("data_title"));
-				//$("#footer .wrap .title > p").text("Artist");
 
 				var audio = document.getElementById("player");	
 				audio.addEventListener("loadedmetadata", function(){
@@ -348,6 +375,31 @@
 			$('.time_control input').slideControl(null,this.onTimeSlideMouseUp);
 		};
 
+		AudioList.prototype.displaySelectedAudio = function(data){
+			var songTitle;
+			if(data.title){
+				if(data.artist)
+					songTitle = data.title + " (" + data.artist + ")";
+				else
+					songTitle = data.title;
+			}
+			else
+				songTitle = data.name;
+			$("#selectedTitle").text(songTitle);
+			$("#footer .wrap .title > h3").text(songTitle);
+
+			var display;
+			if(data.artist && (data.album==undefined))
+				display = data.artist;
+			else if(data.artist && data.album)
+				display = data.artist + " - " + data.album;
+			else if((data.artist==undefined) && data.album)
+				display = "Unknown Artist - " + data.album;
+			else
+				display = "";
+			$("#footer .wrap .title > p").text(display);
+		};		
+
 		AudioList.prototype.onReadAudioList = function(data){
 			if(data.length == 0){
 				//no contents display				
@@ -364,11 +416,12 @@
 				//set HTML for landscape
 				var innerHTML = this.getInnerHTML(data);
 				$("#slide .scroll").append(innerHTML);
-				$("#selectedTitle").text(data[0].name);
+				//$("#selectedTitle").text(data[0].name);
 				$("#bg").css('background-image','url(\"'+data[0].thumb+'\")');
 				$("#player").attr("src", data[0].path);
-				//set footer title
-				$("#footer .wrap .title > h3").text(data[0].name);
+
+				this.displaySelectedAudio(data[0]);
+
 				//set time
 				var audio = document.getElementById("player");
 				audio.addEventListener("loadedmetadata", function(){
@@ -379,7 +432,7 @@
 				this.registEventHandleOnSlideCtrl();
 
 				this.refreshScroll();
-			}
+			}			
 		};
 
 		AudioList.prototype.readAudioList = function(){
