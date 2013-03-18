@@ -351,6 +351,9 @@
 				};
 				that.displaySelectedAudio(data);
 
+				//set audio tag source
+				$("#player").attr("src", $(this).attr("data_path").replace("`", "'"));
+
 				//set footer play button
 				$("#footer .wrap .play").text("e");
 
