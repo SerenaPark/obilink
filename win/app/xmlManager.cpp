@@ -83,17 +83,17 @@ bool CXmlManager::saveSetting(QString setting)
     m_settingFile.write("\n");
 
     if (setting == "HIGH") {
-        m_settingFile.write("\"video_resolution_type\" : \"HIGH\"");
+        m_settingFile.write("\"video_frame_type\" : \"HIGH\",");
         m_settingFile.write("\n");
-        m_settingFile.write("\"video_resolution_size\" : \"1024x768\"");
+        m_settingFile.write("\"video_frame_size\" : \"1024x768\"");
     } else if (setting == "MID") {
-        m_settingFile.write("\"video_resolution_type\" : \"MID\"");
+        m_settingFile.write("\"video_frame_type\" : \"MID\",");
         m_settingFile.write("\n");
-        m_settingFile.write("\"video_resolution_size\" : \"640x480\"");
+        m_settingFile.write("\"video_frame_size\" : \"640x480\"");
     } else if (setting == "LOW") {
-        m_settingFile.write("\"video_resolution_type\" : \"LOW\"");
+        m_settingFile.write("\"video_frame_type\" : \"LOW\",");
         m_settingFile.write("\n");
-        m_settingFile.write("\"video_resolution_size\" : \"480x320\"");
+        m_settingFile.write("\"video_frame_size\" : \"480x320\"");
     } else {
         qDebug() << "Error in saveSetting()" << endl;
     }
