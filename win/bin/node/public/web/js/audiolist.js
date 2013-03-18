@@ -21,12 +21,9 @@
 			this.filelist = [];
 			this.iscroll;
 			this.deviceType;
-			this.audioContext;
-			this.audioSource;
-			this.audioAnalizer;
-			this.canvasContext;
 			this.init();
 		    this.readAudioList();
+		    //this.eqg = new EqGraph();
 		};
 
 		AudioList.prototype.init = function(){
@@ -44,21 +41,6 @@
 					clouserVar2.refreshScroll();
 				});	
 			});
-
-			//get audio context
-			// try {
-   //              this.audioContext = new webkitAudioContext();
-   //              this.audioAnalizer = this.audioContext.createAnalyser();
-   //              var canvas = document.getElementById('bgEq');
-   //              if(canvas){
-   //              	this.canvasContext = canvas.getContext('2d');
-   //              	this.canvasContext.fillStyle = '#ffffff';
-   //              }                
-   //          }
-   //          catch(e) {
-   //              this.audioContext = null;
-   //              this.audioAnalizer = null;
-   //          }
 		};
 
 		AudioList.prototype.getDisplayStatus = function(){
@@ -117,13 +99,13 @@
 			if($("#footer .wrap .play").text() == "d"){
 				//pause
 				$("#footer .wrap .play").text("e");
-				$("#player").trigger("pause");
+				$("#player").trigger("pause");				
 			}
 			else if($("#footer .wrap .play").text() == "e"){
 				//play
 				$("#footer .wrap .play").text("d");
 				$("#player").trigger("play");
-				//this.startEq();
+				//this.eqg.beginDraw();
 			}
 		};
 
@@ -139,49 +121,13 @@
 		AudioList.prototype.play = function(){
 			$("#footer .wrap .play").text("d");
 			$("#player").trigger("play");
-
-			//this.startEq();
+			//this.eqg.beginDraw();
 		};
 
 		AudioList.prototype.pause = function(){
 			$("#footer .wrap .play").text("e");
 			$("#player").trigger("pause");
-		};
-
-		AudioList.prototype.startEq = function(){
-			if(this.audioContext){
-				var audio = document.getElementById('player');
-				// Create a new audio source from the <audio> element
-				var source = this.audioContext.createMediaElementSource(audio);
-				// Connect up the output from the audio source to the input of the analyser
-				source.connect(this.audioAnalizer);
-				// Connect up the audio output of the analyser to the audioContext destination i.e. the speakers (The analyser takes the output of the <audio> element and swallows it. If we want to hear the sound of the <audio> element then we need to re-route the analyser's output to the speakers)
-				this.audioAnalizer.connect(this.audioContext.destination);
-
-				this.drawEq();
-			}			
-		};
-
-		AudioList.prototype.drawEq = function(){
-			if(!this.audioContext)
-				return;
-
-			var canvas = document.getElementById("bgEq");
-			if(canvas){
-				window.webkitRequestAnimationFrame(__bind(this.drawEq, this));
-				var freqByteData = new Uint8Array(this.audioAnalizer.frequencyBinCount);
-				// Copy the frequency data into our new array
-				this.audioAnalizer.getByteFrequencyData(freqByteData);
-
-				// Clear the drawing display
-				this.canvasContext.clearRect(0, 0, canvas.width, canvas.height);
-
-				// For each "bucket" in the frequency data, draw a line corresponding to its magnitude
-				for (var i = 0; i < freqByteData.length; i++) {
-					this.canvasContext.fillRect(i, canvas.height - freqByteData[i], 1, canvas.height);
-				}
-			}			
-		};
+		};		
 
 		AudioList.prototype.playNext = function(){
 			//------pseudo function
@@ -352,7 +298,9 @@
 				that.displaySelectedAudio(data);
 
 				//set audio tag source
-				$("#player").attr("src", $(this).attr("data_path").replace("`", "'"));
+				//that.eqg.disconnect();
+				$("#player").attr("src", $(this).attr("data_path"));
+				//that.eqg.connect();
 
 				//set footer play button
 				$("#footer .wrap .play").text("e");
@@ -431,6 +379,7 @@
 				//$("#selectedTitle").text(data[0].name);
 				$("#bg").css('background-image','url(\"'+data[0].thumb+'\")');
 				$("#player").attr("src", data[0].path);
+				//this.eqg.connect();
 
 				this.displaySelectedAudio(data[0]);
 
