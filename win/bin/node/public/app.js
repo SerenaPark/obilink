@@ -15,6 +15,7 @@ var virtualDirectoryVideoThumbnail = "__vd__videothumbnail";
 var virtualRedirectVideoNormal = "__vr__videonormal";
 var ffmpegBinPath = __dirname + "\\..\\lib\\ffmpeg\\bin";
 var audioCacheData = new Array();
+var videoFrameSize = "480x320";
 
 //Set m3u8's mimetype to "application/vnd.apple.mpegurl" instead of "application/x-mpegURL".
 express.static.mime.define({'application/vnd.apple.mpegurl': ['m3u8']});
@@ -53,6 +54,28 @@ fs.mkdirRecursiveSync = function(directory, mode) {
 		if(!fs.existsSync(tmpPath)) {
 			fs.mkdirSync(tmpPath, mode);
 		}
+	}
+};
+
+fs.rmdirRecursiveSync = function(directory) {
+	//Converting characters '/' to '\' in the directory path.
+	var dirPath = directory.replace(/\//g, '\\');
+	var files = [];
+
+	if( fs.existsSync(dirPath)) {
+		files = fs.readdirSync(dirPath);
+		files.forEach(function(file, index) {
+			var curDirPath = dirPath + "\\" + file;
+			if(fs.statSync(curDirPath).isDirectory()) {
+				// delete curDirPath recursely
+				fs.rmdirRecursiveSync(curDirPath);
+			}
+			else {
+				// delete current file.
+				fs.unlinkSync(curDirPath);
+			}
+		});
+		fs.rmdirSync(dirPath);
 	}
 };
 
@@ -133,7 +156,6 @@ function comp(a, b){
 function prepairMetadata(){
 	fs.mkdirRecursiveSync(__dirname + "/cache/audio/");
 	makeAudioMetaData();
-	makeVideoMetaData();
 }
 
 function makeAudioThumbnailPath(filename, ext){
@@ -389,7 +411,45 @@ function makeVideoInfoFiles(catagory, filepath) {
 	}
 }
 
-function makeVideoMetaData() {
+function initVideoData() {
+	//setup video variables from setting file.
+	var settingFile = __dirname + '\\..\\..\\setting';
+	var settingCacheFile = (__dirname + '\\' + cacheDirectoryVideo + '\\setting').replace(/\//g, '\\');
+	var settingCacheFilePath = settingCacheFile.substring(0, settingCacheFile.lastIndexOf('\\setting'));
+
+	if(fs.existsSync(settingFile)) {  //check a setting file.
+		var fileSetting = fs.readFileSync(settingFile, 'utf8'); 
+		var fileSettingObject = JSON.parse(fileSetting);
+		//set videoFrameSize.
+		if(fileSettingObject.video_frame_size) {
+			videoFrameSize = fileSettingObject.video_frame_size;
+		}
+	}
+	if(fs.existsSync(settingCacheFile)) {  //check a setting cache file.
+		var fileSettingCache = fs.readFileSync(settingCacheFile, 'utf8'); 
+		var fileSettingCacheObject = JSON.parse(fileSettingCache);
+		//set videoFrameSize.
+		if(fileSettingCacheObject.frame_size != videoFrameSize) {
+			//set frame_size to current videoFrameSize to save.
+			fileSettingCacheObject.frame_size = videoFrameSize;
+			fileSettingCache = JSON.stringify(fileSettingCacheObject);
+			//remove previous cacheDirectoryVideo directory and all files.
+			fs.rmdirRecursiveSync(settingCacheFilePath);
+			//should be here after deleting of previous cacheDirectoryVideo directory.
+			fs.mkdirRecursiveSync(settingCacheFilePath);
+			console.log("initVideoData(): "+cacheDirectoryVideo+" directory was deleted.");
+			fs.writeFileSync(settingCacheFile, fileSettingCache, 'utf8');
+		}
+	}
+	else {
+		var fileSettingCacheObject = {};
+		fileSettingCacheObject.frame_size = videoFrameSize;
+		var fileSettingCache = JSON.stringify(fileSettingCacheObject);
+		fs.mkdirRecursiveSync(settingCacheFilePath);
+		fs.writeFileSync(settingCacheFile, fileSettingCache, 'utf8');
+	}
+
+	//make video .info and .jpg thumbnail files.
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
 		parser.parseString(data, function (err, result) {	//xml2js parse
@@ -401,7 +461,7 @@ function makeVideoMetaData() {
 					for(var j=0; j<currList.length; j++) {
 						//make .info information file for video file.
 						makeVideoInfoFiles('info', currList[j].path);
-								//make .jpg thumbnail file for video file.
+						//make .jpg thumbnail file for video file.
 						makeVideoInfoFiles('thumb', currList[j].path);
 					}
 				}
@@ -444,7 +504,7 @@ app.get('/getVideoList', function(req,res){
 							}
 						}
 						else {
-							// Even though thumbnail files are made in makeVideoMetaData() at application's starting time,
+							// Even though thumbnail files are made in makeVideoInfoFiles() at application's starting time,
 							// users can try to add another file to "Share Folders" that he seleced directly after pressing ObiLink App's Sharing Button.
 
 							//make .info information file for video file.
@@ -473,7 +533,7 @@ app.get('/getVideoList', function(req,res){
 });
 
 app.get("/"+virtualDirectoryVideoThumbnail+"/*", function(req, res){
-	var tmpPath = "/contents/" + req.params[0].substring(0, req.params[0].lastIndexOf('.'));
+	var tmpPath = "/contents/" + req.params[0].substring(0, req.params[0].lastIndexOf('.jpg'));
 
 	if(tmpPath) {
 		// make sure you set the correct path to your video file storage
@@ -490,7 +550,7 @@ app.get("/"+virtualDirectoryVideoThumbnail+"/*", function(req, res){
 			console.log("Screenshots(O): "+thumbnailFile.substring(thumbnailFile.lastIndexOf('\\')+1)+" was replied.");
 		}
 		else {
-			// Even though thumbnail files are made in makeVideoMetaData() at application's starting time,
+			// Even though thumbnail files are made in makeVideoInfoFiles() at application's starting time,
 			// users can try to add another file to "Share Folders" that he seleced directly after pressing ObiLink App's Sharing Button.
 
 			//check a requested video file.
@@ -598,7 +658,7 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 					//using external segmenter.exe
 					var ffmpeg_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + outputPath + "&"
 									+ " " + "ffmpeg -y -i " + "\"" + pathToMovie + "\""
-									+ " " + "-f mpegts -acodec libmp3lame -ar 48000 -ab 128k -s 480x320"
+									+ " " + "-f mpegts -acodec libmp3lame -ar 48000 -ab 128k -s " + videoFrameSize
 									+ " " + "-vcodec libx264 -b:v 480000 -bt 200k -subq 7 -me_range 16"
 									+ " " + "-qcomp 0.6 -qmin 10 -qmax 51 - | segmenter - 10"
 									+ " " + "\"" + outputFileName + "\""
@@ -608,7 +668,7 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 					//using internal segmenter of ffmpeg.exe, do not set segment_time to a value below 10.
 					var xxxffmpeg_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + outputPath + "&"
 									+ " " + "ffmpeg -y -i " + "\"" + pathToMovie + "\""
-									+ " " + "-acodec libmp3lame -ar 48000 -ab 128k -s 480x320"
+									+ " " + "-acodec libmp3lame -ar 48000 -ab 128k -s " + videoFrameSize
 									+ " " + "-vcodec libx264 -b:v 480000 -bt 200k -subq 7 -me_range 16"
 									+ " " + "-qcomp 0.6 -qmin 10 -qmax 51"
 									+ " " + "-flags -global_header -map 0 -f segment -segment_time 10 -segment_list_flags +live-cache"
@@ -670,6 +730,7 @@ app.get("/"+virtualRedirectVideoNormal+"/*", function(req, res) {
 
 console.log('Make the audio metadata db...');
 prepairMetadata();
+initVideoData();
 
 console.log('Ready web server');
 
