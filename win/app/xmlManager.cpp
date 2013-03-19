@@ -11,7 +11,7 @@
 /* File     : xmlManager.cpp
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0.8
+ * Version  : 2.0.9
  * Date     : 2013-03-19
  */
 
@@ -60,7 +60,6 @@ QString CXmlManager::loadSetting()
     QTextStream in(&m_settingFile);
     while (!in.atEnd()) {
         QString line = in.readLine();
-        qDebug() << "Line" << line << endl;
         if (line.contains("HIGH")) {
             video_resolution_type = "HIGH";
         } else if (line.contains("MID")) {
@@ -296,7 +295,10 @@ bool CXmlManager::isDropboxShareMode()
 
 bool CXmlManager::isDropboxInstalled()
 {
-    return QDir(getDropboxInstalledPath()).exists();
+    if (QDir(getDropboxInstalledPath()).exists() && getDropboxInstalledPath().contains("Dropbox"))
+        return true;
+
+    return false;
 }
 
 QString CXmlManager::getDropboxInstalledPath()
