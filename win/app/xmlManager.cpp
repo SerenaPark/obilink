@@ -11,8 +11,8 @@
 /* File     : xmlManager.cpp
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0.6
- * Date     : 2013-03-15
+ * Version  : 2.0.7
+ * Date     : 2013-03-19
  */
 
 CXmlManager* CXmlManager::m_instance = NULL;
@@ -349,4 +349,40 @@ void CXmlManager::updateShareSymbolicDir()
         makeSymbolicPath(m_localShareDirList[i], m_localSymbolicDirList[i]);
     }
     return;
+}
+
+bool CXmlManager::removeDirectory(QDir dir)
+{
+    bool ok = dir.exists();
+        if ( ok )
+        {
+            QFileInfoList entries = dir.entryInfoList( QDir::NoDotAndDotDot |
+                    QDir::Dirs | QDir::Files );
+            foreach ( QFileInfo entryInfo, entries )
+            {
+                QString path = entryInfo.absoluteFilePath();
+                if ( entryInfo.isDir() )
+                {
+                    if ( ! removeDirectory( QDir( path ) ) )
+                    {
+                        ok = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    QFile file( path );
+                    if ( ! file.remove() )
+                    {
+                        ok = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ( ok && ! dir.rmdir( dir.absolutePath() ) )
+            ok = false;
+
+        return ok;
 }

@@ -4,12 +4,13 @@
 #include <QStringList>
 #include <QProcess>
 #include <QFile>
+#include <QDir>
 
 /* File     : xmlManager.h
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0.2
- * Date     : 2013-03-15
+ * Version  : 2.0.3
+ * Date     : 2013-03-19
  */
 
 class CXmlManager
@@ -48,6 +49,7 @@ public:
     bool removeShareDir(int);                               // remove share directory path from list1
     bool removeShareDir(QString);
     bool removeAllSymbolDir();
+    bool removeDirectory(QDir);
 
     void updateDropbox(bool);
     void updateShareSymbolicDir();                          //
