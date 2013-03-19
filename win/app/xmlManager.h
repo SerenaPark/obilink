@@ -9,7 +9,7 @@
 /* File     : xmlManager.h
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0.3
+ * Version  : 2.0.4
  * Date     : 2013-03-19
  */
 
@@ -21,6 +21,7 @@ private:
 
     QStringList getXmlValue(QString xmlPath);               // return list of value by the element
     QString getDropboxInstalledPath();                      // return directory path of installed dropbox
+    QString getObilinkDropboxInstalledPath();
     QString makeSymbolicPath(QString);                      // make symbolic directory
     QString makeSymbolicPath(QString, QString);             // make symbolic directory
     QString getSymbolicAbsoultePath(QString);               // return absolute path of symbolic directory
@@ -33,7 +34,6 @@ private:
     QProcess m_rjProc;                                      // a process to remove symbolic directory
     QStringList m_localShareDirList;                        // list of share directory path
     QStringList m_localSymbolicDirList;                     // list of symbolic path of share directory
-    QString m_dropboxInstalledPath;                         // absolute path of installed dropbox
     bool m_dropboxShareMode;                                // true is dropbox is being shared
 
 public:
