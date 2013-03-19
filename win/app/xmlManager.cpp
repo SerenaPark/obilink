@@ -11,7 +11,7 @@
 /* File     : xmlManager.cpp
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0.7
+ * Version  : 2.0.9
  * Date     : 2013-03-19
  */
 
@@ -67,7 +67,7 @@ QString CXmlManager::loadSetting()
         } else if (line.contains("LOW")) {
             video_resolution_type = "LOW";
         } else {
-            qDebug() << "Error in loadSetting()" << endl;
+            qDebug() << "No Match in loadSetting()" << endl;
         }
     }
 
@@ -133,7 +133,7 @@ bool CXmlManager::saveXML()
     if (m_dropboxShareMode) {
         xmlWriter.writeStartElement("dropbox");
         xmlWriter.writeStartElement("path");
-        xmlWriter.writeCharacters(getDropboxInstalledPath());
+        xmlWriter.writeCharacters(getObilinkDropboxInstalledPath());
         xmlWriter.writeEndElement();
         xmlWriter.writeStartElement("lnpath");
         xmlWriter.writeCharacters("dropbox");
@@ -262,7 +262,7 @@ bool CXmlManager::removeShareDir(QString symbolicRelativePath)
 void CXmlManager::updateDropbox(bool checked)
 {
     if (checked)
-        makeSymbolicPath(getDropboxInstalledPath(), "dropbox");
+        makeSymbolicPath(getObilinkDropboxInstalledPath(), "dropbox");
     else
         removeShareDir("dropbox");
 
@@ -295,23 +295,31 @@ bool CXmlManager::isDropboxShareMode()
 
 bool CXmlManager::isDropboxInstalled()
 {
-    return QDir(getDropboxInstalledPath()).exists();
+    if (QDir(getDropboxInstalledPath()).exists() && getDropboxInstalledPath().contains("Dropbox"))
+        return true;
+
+    return false;
 }
 
 QString CXmlManager::getDropboxInstalledPath()
 {
     QDir dir;
     QFileInfo SymbolicPath = dir.homePath().replace("/", "\\") + "\\Links\\Dropbox.lnk";
-    QString installedDropboxPath = SymbolicPath.symLinkTarget() + "\\Apps\\OBILINK";
+    return SymbolicPath.symLinkTarget();
+}
 
-    if (!QDir(SymbolicPath.symLinkTarget() + "\\Apps").exists()) {
-        QDir().mkdir(SymbolicPath.symLinkTarget() + "\\Apps");
-        QDir().mkdir(SymbolicPath.symLinkTarget() + "\\Apps\\OBILINK");
-    } else if (!QDir(SymbolicPath.symLinkTarget() + "\\Apps\\OBILINK").exists()) {
-        QDir().mkdir(SymbolicPath.symLinkTarget() + "\\Apps\\OBILINK");
-    }
+QString CXmlManager::getObilinkDropboxInstalledPath()
+{
+    QString path = getDropboxInstalledPath();
 
-    return installedDropboxPath;
+    if (!QDir(path + "\\Apps").exists())
+        QDir().mkdir(path + "\\Apps");
+
+    if (!QDir(path + "\\Apps\\OBILINK").exists())
+        QDir().mkdir(path + "\\Apps\\OBILINK");
+
+    path = path + "\\Apps\\OBILINK";
+    return path;
 }
 
 QStringList CXmlManager::getLocalShareDirList()
@@ -326,21 +334,16 @@ QStringList CXmlManager::getLocalSymbolicDirList()
 
 bool CXmlManager::removeAllSymbolDir()
 {
-    QProcess removeAllSymbolicDirProc;
-    QDir dir;
-    QString command = "\"" + dir.currentPath().replace("/", "\\") + "\\extbin\\rj.exe\""; /* rj.exe from http://www.flexhex.com for free */
-
+    // Remove general symbolic share directory
     while (m_localSymbolicDirList.size() > 0) {
-        QString symbolicAbsolutePath = getSymbolicAbsoultePath(m_localSymbolicDirList[m_localSymbolicDirList.size()-1]);
-        removeAllSymbolicDirProc.start(command + " \"" + symbolicAbsolutePath + "\"");
-
-        if(removeAllSymbolicDirProc.waitForFinished())
-            dir.rmdir(symbolicAbsolutePath);
-
+        removeShareDir(m_localSymbolicDirList[m_localSymbolicDirList.size()-1]);
         m_localSymbolicDirList.removeLast();
     }
-    return true;
 
+    if (m_dropboxShareMode)
+        removeShareDir("dropbox");
+
+    return true;
 }
 
 void CXmlManager::updateShareSymbolicDir()

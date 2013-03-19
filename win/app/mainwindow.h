@@ -7,7 +7,7 @@
 /* File     : mainwindow.h
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.2
+ * Version  : 2.2.0
  * Date     : 2013-03-15
  */
 
