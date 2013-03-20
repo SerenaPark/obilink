@@ -136,7 +136,11 @@ app.get('/getAudioList', function(req,res) {
           mr.close(albumCursor);
         }
 
-        albumArt = '/thumb/audio' + albumArt + '.bmp';
+        if (albumArt == undefined)
+          albumArt = '/img/music_default.png';
+        else
+          albumArt = '/thumb/audio' + albumArt + '.bmp';
+
         var item = { 'path': '/audio' + path, 'name': name, 'type': 'a', 'thumb': albumArt };
         rtn.push(item);
 
@@ -183,7 +187,11 @@ app.get('/getVideoList', function(req,res) {
           mr.close(thumbnailCursor);
         }
 
-        thumbnail = '/thumb/video' + thumbnail;
+        
+        if (thumbnail == undefined)
+          thumbnail = '/img/video_default.jpg';
+        else
+          thumbnail = '/thumb/video' + thumbnail;
 
         var item = { 'path': '/video' + path, 'name': name, 'type': 'v', 'thumb': thumbnail };
         rtn.push(item);

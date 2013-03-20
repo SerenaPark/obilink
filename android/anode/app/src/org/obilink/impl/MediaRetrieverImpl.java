@@ -1,5 +1,7 @@
 package org.obilink.impl;
 
+
+import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -11,24 +13,33 @@ import org.meshpoint.anode.AndroidContext;
 import org.obilink.api.MediaRetriever;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
-import android.provider.MediaStore;
+import android.os.ParcelFileDescriptor;
 import android.util.Base64;
-//import android.util.Log;
+import android.util.Log;
+
+import android.media.MediaMetadataRetriever;
+import android.content.ContentValues;
+import android.provider.MediaStore.Images;
+import android.provider.MediaStore.Audio;
+import android.provider.MediaStore.Video;
+
+
 
 public class MediaRetrieverImpl extends MediaRetriever implements IModule {
-	final String TAG = "MediaRetrieverImpl";
-	
+ 	
+	final String TAG = "MediaRetrieverImpl";    
 	ContentResolver mContentResolver;
 	HashMap<Integer, Cursor> mCursorMap = new HashMap<Integer, Cursor>();
 	
 	@Override
 	public Object startModule(IModuleContext ctx) {
-		mContentResolver = ((AndroidContext)ctx).getAndroidContext().getContentResolver();
+		mContentResolver = ((AndroidContext)ctx).getAndroidContext().getContentResolver();		
 		return this;
 	}
 
@@ -42,18 +53,21 @@ public class MediaRetrieverImpl extends MediaRetriever implements IModule {
 		String selection;
 
 		if (mediaType.equals("audio")) {
-			uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-			selection = MediaStore.Audio.Media.IS_MUSIC + " = 1";
+			uri = Audio.Media.EXTERNAL_CONTENT_URI;
+			selection = Audio.Media.IS_MUSIC + " = 1";			
 		} else if (mediaType.equals("album")) {
-				uri = android.provider.MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
-				selection = MediaStore.Audio.Albums._ID + " = " + arg1;
-		} else if (mediaType.equals("video")) {
-			uri = android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+			uri = Audio.Albums.EXTERNAL_CONTENT_URI;
+			selection = Audio.Albums._ID + " = " + arg1;
+		} else if (mediaType.equals("video")) {			
+			uri = Video.Media.EXTERNAL_CONTENT_URI;						
 			selection = null;
-		} else if (mediaType.equals("video.thumbnails")) {
-			uri = android.provider.MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI;
+			this.checkHasThumb(uri);
+		} else if (mediaType.equals("video.thumbnails")) {		
+
+			uri = Video.Thumbnails.EXTERNAL_CONTENT_URI;
 			//selection = MediaStore.Video.Thumbnails.VIDEO_ID + " = " + arg1 + " and " + MediaStore.Video.Thumbnails.KIND + " = " + MediaStore.Video.Thumbnails.MICRO_KIND ;
-			selection = MediaStore.Video.Thumbnails.VIDEO_ID + " = " + arg1;
+			selection = Video.Thumbnails.VIDEO_ID + " = " + arg1;				
+
 		} else {
 			return 0;
 		}
@@ -125,7 +139,7 @@ public class MediaRetrieverImpl extends MediaRetriever implements IModule {
 	public String createVideoThumbnail(String filePath) {
 		String encodedImage = "";
 		
-		Bitmap bm = ThumbnailUtils.createVideoThumbnail(filePath, MediaStore.Video.Thumbnails.MINI_KIND);
+		Bitmap bm = ThumbnailUtils.createVideoThumbnail(filePath, Video.Thumbnails.MINI_KIND);
 		if (bm != null) {
 			int bmSize = bm.getHeight() * bm.getRowBytes();
 			ByteBuffer bbuf = ByteBuffer.allocate(bmSize);
@@ -134,5 +148,58 @@ public class MediaRetrieverImpl extends MediaRetriever implements IModule {
 		}
 		
 		return encodedImage;		
+	}
+
+	/*Checks if the thumbnails of the specified image(id) has been created */
+	private void checkHasThumb(Uri uri) {
+		String[] proj = {  
+		  Video.VideoColumns._ID,  
+		  Video.VideoColumns.DATA,  
+		};  
+  
+		long videoId = 0;  
+		String videoPath = "";  
+		
+		Cursor thumbCur = mContentResolver.query(uri, proj,
+												 null, null, null);  
+		try { 														 
+			if (thumbCur != null && thumbCur.moveToFirst()){  
+				do {
+					int id = thumbCur.getColumnIndex(Video.VideoColumns._ID);  
+					int pathId = thumbCur.getColumnIndex(Video.VideoColumns.DATA);  
+					 
+					videoId   = thumbCur.getLong( id );  
+					videoPath = thumbCur.getString( pathId );  
+					
+					Uri    thumbUri = Video.Thumbnails.EXTERNAL_CONTENT_URI;					
+					Bitmap bmThumb = Video.Thumbnails.getThumbnail(mContentResolver, videoId, 
+															Video.Thumbnails.MINI_KIND, null);
+					
+					if (bmThumb == null) {
+					     Bitmap bm = ThumbnailUtils.createVideoThumbnail(videoPath, Video.Thumbnails.MINI_KIND );
+					     if (bm != null ) {
+					   	  	 ContentValues values = new ContentValues(4);
+					   	  	 
+					         values.put(Video.Thumbnails.KIND, Video.Thumbnails.MINI_KIND);
+					         values.put(Video.Thumbnails.VIDEO_ID, videoId);
+					         values.put(Video.Thumbnails.WIDTH, bm.getWidth());
+					         values.put(Video.Thumbnails.HEIGHT, bm.getHeight());
+					         try {                                  
+					             Uri insUri = mContentResolver.insert(thumbUri, values);
+					             if (insUri != null) {
+					                 OutputStream thumbOut = mContentResolver.openOutputStream(insUri);
+					                 bm.compress(Bitmap.CompressFormat.JPEG, 85, thumbOut);
+					                 thumbOut.close();
+					             }                                  
+					         } catch (Exception ex) {
+					             Log.w(TAG, ex);
+					         }                                
+					    }                           
+					}					 
+				}while (thumbCur.moveToNext());			  
+			}  
+		} finally { 
+            if (thumbCur != null ) thumbCur.close();  
+        }  					
 	}
 }
