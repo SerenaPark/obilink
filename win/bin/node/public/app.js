@@ -354,14 +354,14 @@ function makeVideoInfoFiles(catagory, filepath) {
 							+ " " + "ffprobe -show_streams -pretty -loglevel quiet -print_format json -i " + "\"" + pathToMovie + "\""
 							+ " " + ">" + " " + "\"" + infoFileName + "\"";
 			var exec = require("child_process").exec;
-			console.log("Video-File: " + "ffprobe process for information " + infoFileName + " was started.");
+			console.log("Video-Info: " + "ffprobe process for information " + infoFileName + " was started.");
 			exec(ffprobe_cmd, function (error, stdout, stderr) {
-				console.log("Video-File: " + "ffprobe process for  information " + infoFileName + " was terminated.");
+				console.log("Video-Info: " + "ffprobe process for information " + infoFileName + " was terminated.");
 				if(error) {
-					console.log("Video-Info : " + error);
+					console.log("Video-Info(error) : " + error);
 				}
 				if(stderr) {
-					console.log("Video-Info : " + stderr);
+					console.log("Video-Info(stderr) : " + stderr);
 				}
 			});
 		}
@@ -459,6 +459,19 @@ function initVideoData() {
 				for(var i=0; i<result.shareddir.contents.length; i++){
 					var currList = getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v");
 					for(var j=0; j<currList.length; j++) {
+						//check .preparing file to see if previous converted cache files was normally terminated and prepared.
+						var tmpPath = "/contents" + currList[j].path.substring(currList[j].path.lastIndexOf(virtualDirectoryVideo)+virtualDirectoryVideo.length);
+						var cacheM3u8File = (__dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".m3u8").replace(/\//g, '\\');
+						var cacheM3u8FilePath = cacheM3u8File.substring(0, cacheM3u8File.lastIndexOf('\\'));
+						var cachePreparingFile = cacheM3u8File+".preparing";
+						var cachePreparedFile = cacheM3u8File+".prepared";
+						if(fs.existsSync(cachePreparingFile)) {
+							//check a previous .prepared file.
+							if(fs.existsSync(cachePreparedFile) != true) {
+								//delete incomplete cache files at previous converting time.
+								fs.rmdirRecursiveSync(cacheM3u8FilePath);
+							}
+						}
 						//make .info information file for video file.
 						makeVideoInfoFiles('info', currList[j].path);
 						//make .jpg thumbnail file for video file.
@@ -630,19 +643,19 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 				res.redirect(virtualRedirectVideoNormal+'/'+m3u8File);
 			}
 			else {
-				// check if the requested file is being prepared or was prepared.
+				// check if the requested file is being prepared.
 				if(fs.existsSync(outputFile+'.preparing')) {
 					console.log("Video-File: "+m3u8File+' is already preparing.');
 					res.redirect(virtualRedirectVideoNormal+'/'+m3u8File);
 				}
 				else {
 					// from now, even though this request is disconnected or being disconnected
-					// the server application(app.js) will keep to covert for next other client requests.
+					// the server application(app.js) will keep to convert for next other client requests.
 
 					// make a directory for output files.
 					fs.mkdirRecursiveSync(outputPath);
 
-					// touch *.preparing file to mark that the requested file is being prepared or was prepared.
+					// touch *.preparing file to mark that the requested file is being prepared.
 					fs.closeSync(fs.openSync(outputFile+'.preparing', 'a'));
 					console.log("Video-File: "+m3u8File+' is preparing.');
 
@@ -653,41 +666,83 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 						res.redirect(virtualRedirectVideoNormal+'/'+m3u8File);
 					});
 
-					var exec = require("child_process").exec;
+					//spawn is used to kill process ffmpeg.exe and segmenter.exe when users terminate oblink.exe
+					//while video converting.
+					var spawn = require("child_process").spawn;
 
-					//using external segmenter.exe
-					var ffmpeg_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + outputPath + "&"
-									+ " " + "ffmpeg -y -i " + "\"" + pathToMovie + "\""
-									+ " " + "-f mpegts -acodec libmp3lame -ar 48000 -ab 128k -s " + videoFrameSize
-									+ " " + "-vcodec libx264 -b:v 480000 -bt 200k -subq 7 -me_range 16"
-									+ " " + "-qcomp 0.6 -qmin 10 -qmax 51 - | segmenter - 10"
-									+ " " + "\"" + outputFileName + "\""
-									+ " " + "\"" + outputFileName + ".m3u8" + "\""
-									+ " " + "./";  //"http://192.168.0.94:8888/";
+					//select a sementer of ffmpeg internal or external program. 
+					//do not use  ffmpeg internal because there are some caces that iPhone catagoy device shows
+					//an error(need approval), not android catagoy device.
+					var use_external_segmenter = true;
 
-					//using internal segmenter of ffmpeg.exe, do not set segment_time to a value below 10.
-					var xxxffmpeg_cmd = "PATH=" + ffmpegBinPath + ";%PATH%" + "&" + " cd " + outputPath + "&"
-									+ " " + "ffmpeg -y -i " + "\"" + pathToMovie + "\""
-									+ " " + "-acodec libmp3lame -ar 48000 -ab 128k -s " + videoFrameSize
-									+ " " + "-vcodec libx264 -b:v 480000 -bt 200k -subq 7 -me_range 16"
-									+ " " + "-qcomp 0.6 -qmin 10 -qmax 51"
-									+ " " + "-flags -global_header -map 0 -f segment -segment_time 10 -segment_list_flags +live-cache"
-									+ " " + "-segment_list " + "\"" + outputFileName + ".m3u8" + "\""
-									+ " " + "-segment_format mpegts " + "\"" + outputFileName + "%d.ts" + "\"";
+					if(use_external_segmenter == true) {
+						//using external segmenter.exe
+						var ffmpeg_args = ['-y','-i',pathToMovie,
+										'-f','mpegts','-acodec','libmp3lame','-ar','48000','-ab','128k','-s',videoFrameSize,
+										'-vcodec','libx264','-b:v','480000','-bt','200k','-subq','7','-me_range','16',
+										'-qcomp','0.6','-qmin','10','-qmax','51','-'
+										];
+						var segmenter_args = ['-','10',outputFileName,outputFileName+".m3u8",	"./"  //"http://192.168.0.94:8888/"
+										];
+					}
+					else {
+						//using internal segmenter of ffmpeg.exe, do not set segment_time to a value below 10.
+						var ffmpeg_args = ['-y','-i',pathToMovie,
+										'-acodec','libmp3lame','-ar','48000','-ab','128k','-s',videoFrameSize,
+										'-vcodec','libx264','-b:v','480000','-bt','200k','-subq','7','-me_range','16',
+										'-qcomp','0.6','-qmin','10','-qmax','51',
+										'-flags','-global_header','-map','0','-f','segment','-segment_time','10','-segment_list_flags','+live-cache',
+										'-segment_list',outputFileName+".m3u8",
+										'-segment_format','mpegts',outputFileName+"%d.ts"
+										];
+					}
 
+					var child_env = process.env;
+					child_env.Path = ffmpegBinPath;
 					console.log("Video-File: " + "ffmpeg process for " + outputFileName + " was started.");
-					exec(ffmpeg_cmd, function (error, stdout, stderr) {
-						console.log("Video-File: " + "ffmpeg process for " + outputFileName + " was terminated.");
-						if(error) {
-							console.log("Video-File : " + error);
-						}
-						if(stdout) {
-							//console.log("Video-File : " + stdout);
-						}
-						if(stderr) {
-							//console.log("Video-File : " + stderr);
-						}
-					});
+					var ffmpeg_process = spawn('ffmpeg', ffmpeg_args, {cwd:outputPath, env:child_env});
+
+					if(use_external_segmenter == true) {
+						console.log("Video-File: " + "segmenter process for " + outputFileName + " was started.");
+						var segmenter_process = spawn('segmenter', segmenter_args, {cwd:outputPath, env:child_env});
+
+						ffmpeg_process.stdout.on('data', function (data) {
+							segmenter_process.stdin.write(data);
+						});
+						ffmpeg_process.stderr.on('data', function (data) {
+							//console.log("Video-File(ffmpeg_stderr): " + data);
+						});
+						ffmpeg_process.on('close', function (code) {
+							console.log("Video-File(ffmpeg_close): " + "ffmpeg process for " + outputFileName + " was terminated. exitcode:" + code);
+							segmenter_process.stdin.end();
+						});
+						segmenter_process.stdout.on('data', function (data) {
+							//console.log("Video-File(segmenter_stdout): " + data);
+						});
+						segmenter_process.stderr.on('data', function (data) {
+							//console.log("Video-File(segmenter_stderr): " + data);
+						});
+						segmenter_process.on('close', function (code) {
+							// touch *.prepared file to mark that the requested file was prepared.
+							fs.closeSync(fs.openSync(outputFile+'.prepared', 'a'));
+							console.log("Video-File(segmenter_close): "+m3u8File+' is prepared.');
+							console.log("Video-File(segmenter_close): " + "segmenter process for " + outputFileName + " was terminated. exitcode:" + code);
+						});
+					}
+					else {
+						ffmpeg_process.stdout.on('data', function (data) {
+							//console.log("Video-File(ffmpeg_stdout): " + data);
+						});
+						ffmpeg_process.stderr.on('data', function (data) {
+							//console.log("Video-File(ffmpeg_stderr): " + data);
+						});
+						ffmpeg_process.on('close', function (code) {
+							// touch *.prepared file to mark that the requested file was prepared.
+							fs.closeSync(fs.openSync(outputFile+'.prepared', 'a'));
+							console.log("Video-File(ffmpeg_close): "+m3u8File+' is prepared.');
+							console.log("Video-File(ffmpeg_close): " + "ffmpeg process for " + outputFileName + " was terminated. exitcode:" + code);
+						});
+					}
 				}
 			}
 		}
