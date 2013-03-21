@@ -7,12 +7,13 @@
 #include <QDir>
 #include <QDebug>
 #include <Windows.h>
+#include <QDesktopServices>
 
 /* File     : xmlManager.cpp
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0.9
- * Date     : 2013-03-19
+ * Version  : 2.1.0
+ * Date     : 2013-03-21
  */
 
 CXmlManager* CXmlManager::m_instance = NULL;
@@ -160,6 +161,7 @@ bool CXmlManager::loadXML()
     // File 여닫지 말고 XML Query 재검색 방법 검색 / getXmlValue() 병합
     m_localShareDirList = getXmlValue("shareddir/contents/path/string()");
     m_localSymbolicDirList = getXmlValue("shareddir/contents/lnpath/string()");
+    m_dropboxInstalledPathList = getXmlValue("shareddir/dropbox/path/string()");
 
     m_sharedDirListFile.close();
     return true;
@@ -263,11 +265,13 @@ void CXmlManager::updateDropbox(bool checked)
 {
     if (checked)
         makeSymbolicPath(getObilinkDropboxInstalledPath(), "dropbox");
-    else
+    else {
         removeShareDir("dropbox");
+        m_dropboxInstalledPath.clear();
+        m_dropboxInstalledPathList.clear();
+    }
 
     m_dropboxShareMode = checked;
-
     CXmlManager::instance()->saveXML();
     return;
 }
@@ -290,35 +294,51 @@ bool CXmlManager::isDropboxShareMode()
         return true;
 
     return false;
-
 }
 
 bool CXmlManager::isDropboxInstalled()
 {
-    if (QDir(getDropboxInstalledPath()).exists() && getDropboxInstalledPath().contains("Dropbox"))
-        return true;
+    m_dropboxInstalledPath.clear();
+    QFileInfo symbolicFilePath = QDir::homePath() + "\\Links\\Dropbox.lnk";
 
+    // 1st Step. Find path from dropbox link file
+    if (QDir(symbolicFilePath.symLinkTarget()).exists() && symbolicFilePath.symLinkTarget().contains("Dropbox")) {
+        setDropboxInstalledPath(symbolicFilePath.symLinkTarget());
+        return true;
+    }
+
+    // 2nd Step. Find path from XML data
+    if (m_dropboxInstalledPathList.size() > 0 && QDir(m_dropboxInstalledPathList[0]).exists() && m_dropboxInstalledPathList[0].contains("Dropbox")) {
+        setDropboxInstalledPath(m_dropboxInstalledPathList[0]);
+        return true;
+    }
     return false;
 }
 
 QString CXmlManager::getDropboxInstalledPath()
 {
-    QDir dir;
-    QFileInfo SymbolicPath = dir.homePath().replace("/", "\\") + "\\Links\\Dropbox.lnk";
-    return SymbolicPath.symLinkTarget();
+    return m_dropboxInstalledPath;
+}
+
+bool CXmlManager::setDropboxInstalledPath (QString path)
+{
+    // Dropbox path must contain string of "Dropbox" and set root of dropbox path with filter.
+    path = path.remove(path.lastIndexOf("Dropbox")+7, path.length());
+    m_dropboxInstalledPath = path;
+    return true;
 }
 
 QString CXmlManager::getObilinkDropboxInstalledPath()
-{
+{    
     QString path = getDropboxInstalledPath();
 
-    if (!QDir(path + "\\Apps").exists())
-        QDir().mkdir(path + "\\Apps");
+    if (!QDir(path + "/Apps").exists())
+        QDir().mkdir(path + "/Apps");
 
-    if (!QDir(path + "\\Apps\\OBILINK").exists())
-        QDir().mkdir(path + "\\Apps\\OBILINK");
+    if (!QDir(path + "/Apps/OBILINK").exists())
+        QDir().mkdir(path + "/Apps/OBILINK");
 
-    path = path + "\\Apps\\OBILINK";
+    path = path + "/Apps/OBILINK";
     return path;
 }
 
