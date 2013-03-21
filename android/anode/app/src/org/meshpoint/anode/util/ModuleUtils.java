@@ -57,9 +57,11 @@ public class ModuleUtils {
 		new ModuleType(TYPE_JS,   ".js",     null),
 		new ModuleType(TYPE_NODE, ".node",   null),
 		new ModuleType(TYPE_DIR,  "",        null),
-		new ModuleType(TYPE_ZIP,  ".zip",    new ZipExtractor()),
+		new ModuleType(TYPE_ZIP,  ".zip",    new ZipExtractor())
+		/* TODO: tar is not supported
 		new ModuleType(TYPE_TAR,  ".tar.gz", new TarExtractor()),
 		new ModuleType(TYPE_TAR,  ".tgz",    new TarExtractor())
+		*/
 	};
 	
 	public interface Unpacker {
