@@ -9,8 +9,8 @@
 /* File     : xmlManager.h
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.0.4
- * Date     : 2013-03-19
+ * Version  : 2.0.5
+ * Date     : 2013-03-21
  */
 
 class CXmlManager
@@ -20,7 +20,7 @@ private:
     ~CXmlManager();
 
     QStringList getXmlValue(QString xmlPath);               // return list of value by the element
-    QString getDropboxInstalledPath();                      // return directory path of installed dropbox
+
     QString getObilinkDropboxInstalledPath();
     QString makeSymbolicPath(QString);                      // make symbolic directory
     QString makeSymbolicPath(QString, QString);             // make symbolic directory
@@ -35,6 +35,8 @@ private:
     QStringList m_localShareDirList;                        // list of share directory path
     QStringList m_localSymbolicDirList;                     // list of symbolic path of share directory
     bool m_dropboxShareMode;                                // true is dropbox is being shared
+    QString m_dropboxInstalledPath;                         // Root path of dropbox contents
+    QStringList m_dropboxInstalledPathList;                 // List of m_dropboxInstalledPath
 
 public:
     static CXmlManager* instance();
@@ -55,6 +57,8 @@ public:
     void updateShareSymbolicDir();                          //
     bool isDropboxShareMode();                              // return m_dropboxShareMode
     bool isDropboxInstalled();                              // return true, if dropbox installed in the local computer
+    QString getDropboxInstalledPath();                      // return directory path of installed dropbox
+    bool setDropboxInstalledPath(QString path);
 };
 
 #endif // CXmlManager_H
