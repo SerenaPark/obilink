@@ -97,7 +97,7 @@ public class AnodeActivity extends Activity implements StateListener {
 			installModulesFromAssets(moduleZips);
 			return true;
 		case R.id.opts_install_apps:
-			String appZips[] = { "app.zip" };
+			String appZips[] = { "obilink.app" };
 			installAppsFromAssets(appZips);
 			return true;
 		default:
@@ -282,11 +282,6 @@ public class AnodeActivity extends Activity implements StateListener {
 			for (String zipName : moduleZips) {
 				String zipPath = extractAsset(zipName, Constants.RESOURCE_DIR);
 				if (zipPath != null) {
-					/* TODO: not works, need to set receiver?
-					Intent intent = new Intent(AnodeReceiver.ACTION_INSTALL);
-					intent.putExtra(AnodeReceiver.PATH, zipPath);
-					LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-					*/
 					Intent intent = new Intent(AnodeReceiver.ACTION_INSTALL);
 					intent.putExtra(AnodeReceiver.PATH, zipPath);
 					intent.setClassName(ctx, AnodeService.class.getName());
@@ -303,7 +298,10 @@ public class AnodeActivity extends Activity implements StateListener {
 			for (String zipName : appZips) {
 				String zipPath = extractAsset(zipName, Constants.RESOURCE_DIR);
 				if (zipPath != null) {
-					// install to Constants.APP_DIR
+					Intent intent = new Intent(AnodeReceiver.ACTION_INSTALL);
+					intent.putExtra(AnodeReceiver.PATH, zipPath);
+					intent.setClassName(ctx, AnodeService.class.getName());
+					ctx.startService(intent);
 				}
 			}			
 		} catch (IOException e) {
