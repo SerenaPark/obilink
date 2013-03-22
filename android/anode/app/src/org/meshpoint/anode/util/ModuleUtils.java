@@ -52,14 +52,18 @@ public class ModuleUtils {
 	public static final int TYPE_DIR  = 2;
 	public static final int TYPE_ZIP  = 3;
 	public static final int TYPE_TAR  = 4;
+	public static final int TYPE_APP  = 5;
 	
 	private static final ModuleType[] modTypes = new ModuleType[] {
 		new ModuleType(TYPE_JS,   ".js",     null),
 		new ModuleType(TYPE_NODE, ".node",   null),
 		new ModuleType(TYPE_DIR,  "",        null),
 		new ModuleType(TYPE_ZIP,  ".zip",    new ZipExtractor()),
+		/* TODO: tar is not supported
 		new ModuleType(TYPE_TAR,  ".tar.gz", new TarExtractor()),
 		new ModuleType(TYPE_TAR,  ".tgz",    new TarExtractor())
+		*/
+		new ModuleType(TYPE_APP,  ".app",    new ZipExtractor()),
 	};
 	
 	public interface Unpacker {
@@ -73,6 +77,7 @@ public class ModuleUtils {
 	/* cache dir for tmp and downloaded resources */
 	private static File resourceDir = new File(Constants.RESOURCE_DIR);
 	private static File moduleDir = new File(Constants.MODULE_DIR);
+	private static File appDir = new File(Constants.APP_DIR);
 	
 	public static ModuleType guessModuleType(String filename) {
 		/* guess by extension first */
@@ -90,7 +95,10 @@ public class ModuleUtils {
 	public static File getModuleFile(String module, ModuleType modType) {
 		if(modType.unpacker == null)
 			module += modType.extension;
-		return new File(moduleDir, module);
+		if (modType.type == TYPE_APP)
+			return new File(appDir, module);
+		else
+			return new File(moduleDir, module);
 	}
 	
 	public static File locateModule(String module, ModuleType modType) {

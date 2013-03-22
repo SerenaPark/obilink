@@ -16,6 +16,11 @@
 
 package org.meshpoint.anode;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.meshpoint.anode.Runtime;
 import org.meshpoint.anode.Runtime.IllegalStateException;
 import org.meshpoint.anode.Runtime.InitialisationException;
@@ -24,12 +29,16 @@ import org.meshpoint.anode.Runtime.StateListener;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
@@ -73,6 +82,29 @@ public class AnodeActivity extends Activity implements StateListener {
 		uiThread = viewHandler.getLooper().getThread().getId();
 	}
 
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.options, menu);
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.opts_install_modules:
+			String moduleZips[] = { "express.zip" };
+			installModulesFromAssets(moduleZips);
+			return true;
+		case R.id.opts_install_apps:
+			String appZips[] = { "obilink.app" };
+			installAppsFromAssets(appZips);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+	
 	private void initUI() {
 		startButton = (Button)findViewById(R.id.start_button);
 		startButton.setOnClickListener(new StartClickListener());
@@ -243,5 +275,71 @@ public class AnodeActivity extends Activity implements StateListener {
 		} catch (WriterException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void installModulesFromAssets(String[] moduleZips) {
+		try {
+			for (String zipName : moduleZips) {
+				String zipPath = extractAsset(zipName, Constants.RESOURCE_DIR);
+				if (zipPath != null) {
+					Intent intent = new Intent(AnodeReceiver.ACTION_INSTALL);
+					intent.putExtra(AnodeReceiver.PATH, zipPath);
+					intent.setClassName(ctx, AnodeService.class.getName());
+					ctx.startService(intent);
+				}
+			}			
+		} catch (IOException e) {
+			Log.v(TAG, "installModulesFromAssets: unable to install modules: " + e);
+		}
+	}
+	
+	private void installAppsFromAssets(String[] appZips) {
+		try {
+			for (String zipName : appZips) {
+				String zipPath = extractAsset(zipName, Constants.RESOURCE_DIR);
+				if (zipPath != null) {
+					Intent intent = new Intent(AnodeReceiver.ACTION_INSTALL);
+					intent.putExtra(AnodeReceiver.PATH, zipPath);
+					intent.setClassName(ctx, AnodeService.class.getName());
+					ctx.startService(intent);
+				}
+			}			
+		} catch (IOException e) {
+			Log.v(TAG, "installModulesFromAssets: unable to install modules: " + e);
+		}
+	}
+	
+	/**
+	 * Extract the module/app from assets to the default resource location.
+	 * @throws IOException
+	 */
+	private String extractAsset(String assetName, String destDir) throws IOException {
+		File dir, asset, pkg;
+		if (!(dir = new File(destDir)).exists())
+			dir.mkdirs();
+		
+		if ((asset = new File(destDir, assetName)).exists()) {
+			/* check to see if this timestamp pre-dates the current package */
+			if((pkg = new File(ctx.getPackageResourcePath())).exists()) {
+				if(pkg.lastModified() < asset.lastModified()) {
+					Log.v(TAG, "extractAsset: Asset up to date");
+					return null;
+				}
+			}
+			Log.v(TAG, "extractAsset: Asset present but out of date");
+			asset.delete();
+		}
+		Log.v(TAG, "extractAsset: copying Asset");
+		InputStream in = ctx.getAssets().open(assetName);
+		FileOutputStream out = new FileOutputStream(asset);
+		int read;
+		byte[] buf = new byte[8192];
+		while((read = in.read(buf)) != -1)
+				out.write(buf, 0, read);
+		in.close();
+		out.flush();
+		out.close();
+		
+		return asset.getPath();
 	}
 }
