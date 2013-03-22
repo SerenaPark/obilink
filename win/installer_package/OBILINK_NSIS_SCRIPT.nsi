@@ -5474,11 +5474,16 @@ FunctionEnd
 
 BrandingText /TRIMRIGHT "OBIGO"
 
-Section "Prev" SEC01
+
+Section "VCRedist" SEC01
+  Call InstallVCRedist
+SectionEnd
+
+Section "Prev" SEC02
   Call UninstallPrevious
 SectionEnd
 
-Section "Main" SEC02
+Section "Main" SEC03
   SetOutPath "$INSTDIR"
   File "..\bin\D3DCompiler_43.dll"
   SetOutPath "$INSTDIR\extbin"
@@ -11054,9 +11059,7 @@ Section "Main" SEC02
   File "..\bin\readme"
 SectionEnd
 
-Section "VCRedist" SEC03
-  Call InstallVCRedist
-SectionEnd
+
 
 Section -AdditionalIcons
   CreateShortCut "$SMPROGRAMS\OBILINK\Uninstall.lnk" "$INSTDIR\uninst.exe"
