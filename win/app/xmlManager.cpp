@@ -12,8 +12,8 @@
 /* File     : xmlManager.cpp
  * Author   : Edgar Seo
  * Company  : OBIGO KOREA
- * Version  : 2.1.0
- * Date     : 2013-03-21
+ * Version  : 2.1.1
+ * Date     : 2013-03-22
  */
 
 CXmlManager* CXmlManager::m_instance = NULL;
@@ -50,10 +50,10 @@ void CXmlManager::destroy()
 
 QString CXmlManager::loadSetting()
 {
-    QString video_resolution_type = "MID";      // Default video setting value
+    QString video_resolution_type = "TYPE02";      // Default video setting value
     if (!m_settingFile.open(QIODevice::ReadOnly)) {
         qDebug() << "Setting File is not exist. Create new setting file now" << endl;
-        if (saveSetting("MID")) {
+        if (saveSetting("TYPE02")) {
             return video_resolution_type;
         }
     }
@@ -61,12 +61,12 @@ QString CXmlManager::loadSetting()
     QTextStream in(&m_settingFile);
     while (!in.atEnd()) {
         QString line = in.readLine();
-        if (line.contains("HIGH")) {
-            video_resolution_type = "HIGH";
-        } else if (line.contains("MID")) {
-            video_resolution_type = "MID";
-        } else if (line.contains("LOW")) {
-            video_resolution_type = "LOW";
+        if (line.contains("TYPE01")) {
+            video_resolution_type = "TYPE01";
+        } else if (line.contains("TYPE02")) {
+            video_resolution_type = "TYPE02";
+        } else if (line.contains("TYPE03")) {
+            video_resolution_type = "TYPE03";
         } else {
             qDebug() << "No Match in loadSetting()" << endl;
         }
@@ -83,16 +83,16 @@ bool CXmlManager::saveSetting(QString setting)
     m_settingFile.write("{");
     m_settingFile.write("\n");
 
-    if (setting == "HIGH") {
-        m_settingFile.write("\"video_frame_type\" : \"HIGH\",");
+    if (setting == "TYPE01") {
+        m_settingFile.write("\"video_frame_type\" : \"TYPE01\",");
         m_settingFile.write("\n");
         m_settingFile.write("\"video_frame_size\" : \"1024x768\"");
-    } else if (setting == "MID") {
-        m_settingFile.write("\"video_frame_type\" : \"MID\",");
+    } else if (setting == "TYPE02") {
+        m_settingFile.write("\"video_frame_type\" : \"TYPE02\",");
         m_settingFile.write("\n");
         m_settingFile.write("\"video_frame_size\" : \"640x480\"");
-    } else if (setting == "LOW") {
-        m_settingFile.write("\"video_frame_type\" : \"LOW\",");
+    } else if (setting == "TYPE03") {
+        m_settingFile.write("\"video_frame_type\" : \"TYPE03\",");
         m_settingFile.write("\n");
         m_settingFile.write("\"video_frame_size\" : \"480x320\"");
     } else {
@@ -243,6 +243,8 @@ bool CXmlManager::removeShareDir(int row)
     m_localShareDirList.removeAt(row);
     m_localSymbolicDirList.removeAt(row);
 
+    removeDirectory(QDir::QDir("node/public/cache/video/contents/" + symblicRelativePath));
+
     return removeShareDir(symblicRelativePath);
 }
 
@@ -329,7 +331,7 @@ bool CXmlManager::setDropboxInstalledPath (QString path)
 }
 
 QString CXmlManager::getObilinkDropboxInstalledPath()
-{    
+{
     QString path = getDropboxInstalledPath();
 
     if (!QDir(path + "/Apps").exists())

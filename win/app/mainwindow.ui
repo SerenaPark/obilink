@@ -14,7 +14,7 @@
    <cursorShape>ArrowCursor</cursorShape>
   </property>
   <property name="windowTitle">
-   <string>ObiLink</string>
+   <string>OBILINK</string>
   </property>
   <property name="styleSheet">
    <string notr="true">#centralWidget{background-image: url(:/images/images/bg.png)}</string>

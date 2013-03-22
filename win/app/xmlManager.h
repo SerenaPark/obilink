@@ -20,7 +20,6 @@ private:
     ~CXmlManager();
 
     QStringList getXmlValue(QString xmlPath);               // return list of value by the element
-
     QString getObilinkDropboxInstalledPath();
     QString makeSymbolicPath(QString);                      // make symbolic directory
     QString makeSymbolicPath(QString, QString);             // make symbolic directory
