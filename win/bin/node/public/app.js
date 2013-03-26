@@ -7,7 +7,7 @@ var musicmetadata = require('musicmetadata');
 //var Iconv  = require('iconv').Iconv;
 var confxmlPath = __dirname + "/../../conf.xml";
 //should use only lower case characters when specifying file extension.
-var videoFileExt = [".avi", ".mp4", ".mov", ".wmv", ".mpg"];
+var videoFileExt = [".avi", ".mp4", ".mov", ".wmv", ".mpg", ".mkv"];
 var audioFileExt = [".mp3"];
 var cacheDirectoryVideo = "cache/video";
 var virtualDirectoryVideo = "__vd__video";
@@ -309,25 +309,7 @@ app.get('/getDropboxAudioList', function(req,res){
 });
 
 app.get('/getDropboxVideoList', function(req,res){
-	var rtn = [];
-	var parser = new xml2js.Parser();	//xml2js parser
-	fs.readFile(confxmlPath, function(err, data) {
-	    parser.parseString(data, function (err, result) {	//xml2js parse
-	    	if( (result != undefined) &&
-	    		(result.shareddir != undefined) &&
-	    		(result.shareddir.dropbox != undefined) ){
-		    	for(var i=0; i<result.shareddir.dropbox.length; i++){
-		    		rtn = rtn.concat( getList(String(result.shareddir.dropbox[i].lnpath), videoFileExt, "v"));
-		    	}
-		    	var returnJson = JSON.stringify(rtn.sort(comp));
-			    if(returnJson.length > 0)
-			    	res.end(returnJson);
-			}
-			else{				
-				res.end("");
-			}
-	    });
-	});
+	getVideoList('dropbox',req,res);
 });
 
 function makeVideoInfoFiles(catagory, filepath) {
@@ -483,16 +465,25 @@ function initVideoData() {
 	});
 }
 
-app.get('/getVideoList', function(req,res){
+function getVideoList(catagory,req,res) {
 	var rtn = [];
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
-		parser.parseString(data, function (err, result) {	//xml2js parse	        
-			if( (result != undefined) &&
-	    		(result.shareddir != undefined) &&
-	    		(result.shareddir.contents != undefined) ){
-				for(var i=0; i<result.shareddir.contents.length; i++){
-					var currList = getList( String(result.shareddir.contents[i].lnpath), videoFileExt, "v");
+		parser.parseString(data, function (err, result) {	//xml2js parse
+			var sharedDir = undefined;
+
+			if( (result != undefined) && (result.shareddir != undefined) ) {
+				if(catagory == 'dropbox') {
+					sharedDir = result.shareddir.dropbox;
+				}
+				else {
+					sharedDir = result.shareddir.contents;
+				}
+			}
+
+			if(sharedDir != undefined) {
+				for(var i=0; i<sharedDir.length; i++){
+					var currList = getList( String(sharedDir[i].lnpath), videoFileExt, "v");
 
 					//add video file's playtime durarion.
 					for(var j=0; j<currList.length; j++){
@@ -543,6 +534,10 @@ app.get('/getVideoList', function(req,res){
 			}
 		});
 	});
+}
+
+app.get('/getVideoList', function(req,res) {
+	getVideoList('contents',req,res);
 });
 
 app.get("/"+virtualDirectoryVideoThumbnail+"/*", function(req, res){
