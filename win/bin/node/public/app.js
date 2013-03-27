@@ -662,12 +662,12 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 					});
 
 					//spawn is used to kill process ffmpeg.exe and segmenter.exe when users terminate oblink.exe
-					//while video converting.
+					//while video file is currently being converted.
 					var spawn = require("child_process").spawn;
 
-					//select a sementer of ffmpeg internal or external program. 
-					//do not use  ffmpeg internal because there are some caces that iPhone catagoy device shows
-					//an error(need approval), not android catagoy device.
+					//select a segmenter of ffmpeg internal or external program. 
+					//do not use  ffmpeg internal because there are some caces that iPhone catagory device shows
+					//an error(need approval), not android catagory device.
 					var use_external_segmenter = true;
 
 					if(use_external_segmenter == true) {
