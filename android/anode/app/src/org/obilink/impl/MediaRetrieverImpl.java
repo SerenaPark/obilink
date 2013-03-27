@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.PriorityQueue;
 
 import org.meshpoint.anode.module.IModule;
 import org.meshpoint.anode.module.IModuleContext;
@@ -19,6 +20,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
+import android.os.Process;
 import android.os.ParcelFileDescriptor;
 import android.util.Base64;
 import android.util.Log;
@@ -32,14 +37,34 @@ import android.provider.MediaStore.Video;
 
 
 public class MediaRetrieverImpl extends MediaRetriever implements IModule {
- 	
-	final String TAG = "MediaRetrieverImpl";    
+    private Handler mThumbHandler; 	
+    private static final int IMAGE_THUMB = 1;
+    private static final String TAG = "MediaRetrieverImpl";    
+    private PriorityQueue<VideoThumbRequest> mVideoThumbQueue;
+    
 	ContentResolver mContentResolver;
 	HashMap<Integer, Cursor> mCursorMap = new HashMap<Integer, Cursor>();
 	
 	@Override
 	public Object startModule(IModuleContext ctx) {
-		mContentResolver = ((AndroidContext)ctx).getAndroidContext().getContentResolver();		
+		mContentResolver = ((AndroidContext)ctx).getAndroidContext().getContentResolver();		 
+		
+		mVideoThumbQueue = new PriorityQueue<VideoThumbRequest>(); 
+		mVideoThumbQueue.clear();
+		HandlerThread ht = new HandlerThread("video thumb thread", Process.THREAD_PRIORITY_BACKGROUND);
+		ht.start();
+		mThumbHandler = new Handler(ht.getLooper()) {
+		    @Override
+		    public void handleMessage(Message msg) {
+		        if (msg.what == IMAGE_THUMB) {
+		            synchronized (mVideoThumbQueue) {
+		            	VideoThumbRequest req = mVideoThumbQueue.poll();
+		            	req.makeThumb();
+		            }
+		        }
+		    }
+		};
+
 		return this;
 	}
 
@@ -170,31 +195,19 @@ public class MediaRetrieverImpl extends MediaRetriever implements IModule {
 					 
 					videoId   = thumbCur.getLong( id );  
 					videoPath = thumbCur.getString( pathId );  
-					
-					Uri    thumbUri = Video.Thumbnails.EXTERNAL_CONTENT_URI;					
+										
 					Bitmap bmThumb = Video.Thumbnails.getThumbnail(mContentResolver, videoId, 
 															Video.Thumbnails.MINI_KIND, null);
 					
-					if (bmThumb == null) {
-					     Bitmap bm = ThumbnailUtils.createVideoThumbnail(videoPath, Video.Thumbnails.MINI_KIND );
-					     if (bm != null ) {
-					   	  	 ContentValues values = new ContentValues(4);
-					   	  	 
-					         values.put(Video.Thumbnails.KIND, Video.Thumbnails.MINI_KIND);
-					         values.put(Video.Thumbnails.VIDEO_ID, videoId);
-					         values.put(Video.Thumbnails.WIDTH, bm.getWidth());
-					         values.put(Video.Thumbnails.HEIGHT, bm.getHeight());
-					         try {                                  
-					             Uri insUri = mContentResolver.insert(thumbUri, values);
-					             if (insUri != null) {
-					                 OutputStream thumbOut = mContentResolver.openOutputStream(insUri);
-					                 bm.compress(Bitmap.CompressFormat.JPEG, 85, thumbOut);
-					                 thumbOut.close();
-					             }                                  
-					         } catch (Exception ex) {
-					             Log.w(TAG, ex);
-					         }                                
-					    }                           
+					if (bmThumb == null) {													            
+			            try {
+			            	VideoThumbRequest req = new VideoThumbRequest(mContentResolver, videoId, videoPath);					                
+			                mVideoThumbQueue.add(req);
+			                // Trigger the handler.
+			                mThumbHandler.obtainMessage(IMAGE_THUMB).sendToTarget();
+			            } catch (Throwable t) {
+			                Log.w(TAG, t);
+			            }				        											                            
 					}					 
 				}while (thumbCur.moveToNext());			  
 			}  
@@ -202,4 +215,42 @@ public class MediaRetrieverImpl extends MediaRetriever implements IModule {
             if (thumbCur != null ) thumbCur.close();  
         }  					
 	}
+	
+	
+	private static class VideoThumbRequest {
+		private ContentResolver mCr;
+        private long mVideoId = 0;
+        private String mVideoPath = "";         
+
+        public VideoThumbRequest(ContentResolver cr, long id, String path) { 
+        	mCr			= cr;
+        	mVideoId 	= id;
+        	mVideoPath 	= path;
+        }
+
+        public void makeThumb() {
+			Uri    thumbUri = Video.Thumbnails.EXTERNAL_CONTENT_URI;
+			
+			Bitmap bm = ThumbnailUtils.createVideoThumbnail(mVideoPath, Video.Thumbnails.MINI_KIND );
+			if (bm != null ) {
+				ContentValues values = new ContentValues(4);
+				 
+				values.put(Video.Thumbnails.KIND, Video.Thumbnails.MINI_KIND);
+				values.put(Video.Thumbnails.VIDEO_ID, mVideoId);
+				values.put(Video.Thumbnails.WIDTH, bm.getWidth());
+				values.put(Video.Thumbnails.HEIGHT, bm.getHeight());
+				try {                                  
+				    Uri insUri = mCr.insert(thumbUri, values);
+				    if (insUri != null) {
+				        OutputStream thumbOut = mCr.openOutputStream(insUri);
+				        bm.compress(Bitmap.CompressFormat.JPEG, 85, thumbOut);
+				        thumbOut.close();
+				    }                                  
+				} catch (Exception ex) {
+				    Log.w(TAG, ex);
+				}                                
+			} 
+        }
+        
+    }	
 }
