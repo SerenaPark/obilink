@@ -312,12 +312,12 @@ app.get('/getDropboxVideoList', function(req,res){
 	getVideoList('dropbox',req,res);
 });
 
-function makeVideoInfoFiles(catagory, filepath) {
+function makeVideoInfoFiles(category, filepath) {
 	var tmpPath = "/contents" + filepath.substring(filepath.lastIndexOf(virtualDirectoryVideo)+virtualDirectoryVideo.length);
 	var pathToMovie =  __dirname + decSPACE(tmpPath);
 	pathToMovie = pathToMovie.replace(/\//g, '\\');
 
-	if(catagory == 'info') {
+	if(category == 'info') {
 		var infoFile = __dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".info";
 		infoFile = infoFile.replace(/\//g, '\\');
 		var infoPath = infoFile.substring(0, infoFile.lastIndexOf('\\'));
@@ -349,7 +349,7 @@ function makeVideoInfoFiles(catagory, filepath) {
 		}
 	}
 
-	if(catagory == 'thumb') {
+	if(category == 'thumb') {
 		var thumbnailFile = __dirname + "/" + cacheDirectoryVideo + tmpPath + tmpPath.substring(tmpPath.lastIndexOf('/')) + ".jpg";
 		thumbnailFile = thumbnailFile.replace(/\//g, '\\');
 		var thumbnailPath = thumbnailFile.substring(0, thumbnailFile.lastIndexOf('\\'));
@@ -465,7 +465,7 @@ function initVideoData() {
 	});
 }
 
-function getVideoList(catagory,req,res) {
+function getVideoList(category,req,res) {
 	var rtn = [];
 	var parser = new xml2js.Parser();	//xml2js parser
 	fs.readFile(confxmlPath, function(err, data) {
@@ -473,7 +473,7 @@ function getVideoList(catagory,req,res) {
 			var sharedDir = undefined;
 
 			if( (result != undefined) && (result.shareddir != undefined) ) {
-				if(catagory == 'dropbox') {
+				if(category == 'dropbox') {
 					sharedDir = result.shareddir.dropbox;
 				}
 				else {
@@ -666,8 +666,8 @@ app.get("/"+virtualDirectoryVideo+"/*", function(req, res) {
 					var spawn = require("child_process").spawn;
 
 					//select a segmenter of ffmpeg internal or external program. 
-					//do not use  ffmpeg internal because there are some caces that iPhone catagory device shows
-					//an error(need approval), not android catagory device.
+					//do not use  ffmpeg internal because there are some caces that iPhone category device shows
+					//an error(need approval), not android category device.
 					var use_external_segmenter = true;
 
 					if(use_external_segmenter == true) {
