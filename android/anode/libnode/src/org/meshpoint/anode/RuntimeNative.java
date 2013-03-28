@@ -51,8 +51,6 @@ final class RuntimeNative {
 		char sep = File.separatorChar;
 		String packageName = ctx.getPackageName();
 		
-		// Example: `/data/data/org.mypackage.android/node_modules`
-		// TODO: make the node dynamic library not depend on assumed /data/data filesystem structure
 		String modulePath = sep + "storage" + sep + "extSdCard" + sep + "node_modules";
 		String bridgePath = sep + "data" + sep + "data" + sep + packageName + sep + "node_modules";
 		String runtimePath = sep + "data" + sep + "data" + sep + packageName + sep + "app";
