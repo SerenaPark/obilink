@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item android:id="@+id/opts_install_modules" android:title="@string/opts_install_modules" android:visible="true" android:enabled="true"></item>
-    <item android:id="@+id/opts_install_apps" android:title="@string/opts_install_apps" android:visible="true" android:enabled="true"></item>
+    <item android:id="@+id/start_app_menuItem" android:title="@string/opts_start_app"></item><item android:id="@+id/config_app_menuItem" android:title="@string/opts_config_app" android:visible="true" android:enabled="true"></item><item android:id="@+id/install_apps_menuItem" android:title="@string/opts_install_apps" android:visible="true" android:enabled="true"></item>
+    
+    
 </menu>

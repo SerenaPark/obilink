@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">OBILINK</string>
-    <string name="start">Start</string>
-    <string name="stop">Stop</string>
-    <string name="arguments">Arguments:</string>
-    <string name="run_state">Run state</string>
-    <string name="created">Created</string>
-    <string name="started">Started</string>
-    <string name="stopping">Stopping</string>
-    <string name="stopped">Stopped</string>
     <string name="anode_receiver">Anode Receiver</string>
     <string name="anode_receiver_description">A broadcast receiver for controlling invocations of node.js</string>
     <string name="anode_service">Anode Service</string>
     <string name="anode_service_description">A service that permits the running of node.js invocations in the background</string>
-    <string name="no_wifi">Please enable WiFi</string>
-    <string name="opts_install_modules">Install modules</string>
-    <string name="opts_install_apps">Install apps</string>
+    <string name="not_available">메뉴에서 [공유 시작]을 선택해 주십시오.</string>
+    <string name="opts_start_app">공유 시작</string>
+    <string name="opts_config_app">앱 설정</string>
+    <string name="opts_install_apps">앱 설치</string>
+    <string name="ui_wifi_name">Wi-Fi: </string>
+    <string name="ui_wifi_not_connected">연결 없음</string>
+    <string name="ui_intro_title">연결 방법</string>
+    <string name="ui_intro_by_url">방법1&gt; 아래 주소로 연결하십시오.</string>
+    <string name="ui_url_to_connect">http://192.168.0.1:8888</string>
+    <string name="ui_intro_by_qrcode">방법2&gt; 아래 QR 코드를 찍으십시오.</string>
+    <string name="ui_qrcode_description">연결할 QR 코드</string>
+    
 </resources>

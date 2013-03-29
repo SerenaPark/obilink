@@ -28,24 +28,25 @@ import org.meshpoint.anode.Runtime.NodeException;
 import org.meshpoint.anode.Runtime.StateListener;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnKeyListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.ImageView;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
 import org.obilink.util.QRCodeEncoder;
@@ -57,31 +58,44 @@ import com.google.zxing.WriterException;
 public class AnodeActivity extends Activity implements StateListener {
 
 	private static String TAG = "anode::AnodeActivity";
+	
+	private String modulesToInstall[] = { "express.zip", "obilink.app" };
+	
 	private Context ctx;
-	private Button startButton;
-	private Button stopButton;
-	private EditText argsText;
-	private TextView stateText;
-	private TextView qrcodeText;
-	private ImageView qrcodeImage;
 	private Handler viewHandler = new Handler();
 	private long uiThread;
 	private String instance;
 	private Isolate isolate;
+	
+	private TextView wifiName_textView;
+	private TextView urlToConnect_textView;
+	private ImageView qrcode_imageView;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+				
+		setContentView(R.layout.main);
+
+		Config.init(this);
+		Config.setDefaultAppPath(Config.DEFAULT_APP_PATH);
 		
+		ctx = getApplicationContext();		
 		instance = AnodeService.soleInstance();
 		
-		setContentView(R.layout.main);
-		ctx = getApplicationContext();
 		initUI();
-		uiThread = viewHandler.getLooper().getThread().getId();
+		
+		uiThread = viewHandler.getLooper().getThread().getId();		
 	}
 
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+		updateUI(instance == null ? Runtime.STATE_CREATED : Runtime.STATE_STARTED);
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -92,45 +106,78 @@ public class AnodeActivity extends Activity implements StateListener {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.opts_install_modules:
-			String moduleZips[] = { "express.zip" };
-			installModulesFromAssets(moduleZips);
-			return true;
-		case R.id.opts_install_apps:
-			String appZips[] = { "obilink.app" };
-			installAppsFromAssets(appZips);
-			return true;
+		case R.id.start_app_menuItem:
+			return onStartAppSelected();
+		case R.id.config_app_menuItem:
+			return onConfigAppSelected();
+		case R.id.install_apps_menuItem:
+			return onInstallAppsSelected();
 		default:
 			return super.onOptionsItemSelected(item);
 		}
 	}
 	
-	private void initUI() {
-		startButton = (Button)findViewById(R.id.start_button);
-		startButton.setOnClickListener(new StartClickListener());
-		stopButton = (Button)findViewById(R.id.stop_button);
-		stopButton.setOnClickListener(new StopClickListener());
-		argsText = (EditText)findViewById(R.id.args_editText);
-		stateText = (TextView)findViewById(R.id.args_stateText);
-		argsText.setOnKeyListener(new OnKeyListener() {
-			public boolean onKey(View v, int keyCode, KeyEvent event) {
-				/* If the event is a key-down event on the "enter" button */
-				if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
-					(keyCode == KeyEvent.KEYCODE_ENTER)) {
-					startAction();
-					return true;
+	private boolean onStartAppSelected() {
+		String appPath = Config.getDefaultAppPath();
+		
+		if (new File(appPath).exists()) {
+			startApp(appPath);
+		} else {
+			new AlertDialog.Builder(this)
+			.setTitle("앱 시작")
+			.setMessage("[앱 설정]에서 시작할 앱 위치를 입력해 주세요.")
+			.setPositiveButton("확인", null)
+			.show();
+		}
+		
+		return true;
+	}
+	
+	private boolean onConfigAppSelected() {
+		final EditText input = new EditText(this);
+		input.setText(Config.getDefaultAppPath());
+		input.selectAll();
+		
+		new AlertDialog.Builder(this)
+			.setTitle("앱 설정")
+			.setMessage("메뉴에서 실행할 앱 위치를 입력해 주세요.")
+			.setView(input)
+			.setPositiveButton("적용", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					Config.setDefaultAppPath(input.getText().toString());
 				}
-				return false;
-			}
-		});
-		qrcodeText = (TextView)findViewById(R.id.qrcode_textView);
-		qrcodeImage = (ImageView)findViewById(R.id.qrcode_imageView);
-		if (instance == null)
-			__stateChanged(Runtime.STATE_CREATED);
-		else
-			__stateChanged(Runtime.STATE_STARTED);
+			}).setNegativeButton("취소", null)
+			.show();
+
+		return true;
 	}
 
+	private boolean onInstallAppsSelected() {		
+		installModulesFromAssets(modulesToInstall);
+		return true;
+	}
+	
+	private void initUI() {
+		wifiName_textView = (TextView)findViewById(R.id.wifiName_textView);
+		urlToConnect_textView = (TextView)findViewById(R.id.urlToConnect_textView);
+		qrcode_imageView = (ImageView)findViewById(R.id.qrcode_imageView);		
+	}
+
+	private void updateUI(final int state) {
+		String url = null;
+		
+		if (state == Runtime.STATE_STARTED) {
+			String ipaddr = getWifiIpAddress();
+			if (ipaddr != null) 
+				url = "http://" + ipaddr + ":" + Config.getPort();
+		}
+		
+		updateWifiName(getWifiSSID());
+		updateURLToConnect(url);
+		updateQRCode(url);
+	}
+	
 	private void initRuntime(String[] opts) {
 		try {
 			Runtime.initRuntime(ctx, opts);
@@ -139,17 +186,16 @@ public class AnodeActivity extends Activity implements StateListener {
 		}
 	}
 
-	private void startAction() {
+	private void startApp(String appPath) {
 		String options = getIntent().getStringExtra(AnodeReceiver.OPTS);
 		String instance = getIntent().getStringExtra(AnodeReceiver.INST);
 		String[] opts = options == null ? null : options.split("\\s");
 		initRuntime(opts);
-		String args = argsText.getText().toString();
 		try {
 			isolate = Runtime.createIsolate();
 			isolate.addStateListener(this);
 			this.instance = AnodeService.addInstance(instance, isolate);
-			isolate.start(args.split("\\s"));
+			isolate.start(appPath.split("\\s"));
 		} catch (IllegalStateException e) {
 			Log.v(TAG, "isolate start: exception: " + e + "; cause: " + e.getCause());
 		} catch (NodeException e) {
@@ -157,7 +203,7 @@ public class AnodeActivity extends Activity implements StateListener {
 		}
 	}
 
-	private void stopAction() {
+	private void stopApp() {
 		if(instance == null) {
 			Log.v(TAG, "AnodeReceiver.onReceive::stop: no instance currently running for this activity");
 			return;
@@ -168,18 +214,6 @@ public class AnodeActivity extends Activity implements StateListener {
 			Log.v(TAG, "isolate stop : exception: " + e + "; cause: " + e.getCause());
 		} catch (NodeException e) {
 			Log.v(TAG, "isolate stop: exception: " + e);
-		}
-	}
-
-	class StartClickListener implements OnClickListener {
-		public void onClick(View arg0) {
-			startAction();
-		}
-	}
-
-	class StopClickListener implements OnClickListener {
-		public void onClick(View arg0) {
-			stopAction();
 		}
 	}
 
@@ -197,81 +231,69 @@ public class AnodeActivity extends Activity implements StateListener {
 	}
 	
 	private void __stateChanged(final int state) {
-		stateText.setText(getStateString(state));
-		startButton.setEnabled(state != Runtime.STATE_STARTED);
-		stopButton.setEnabled(state == Runtime.STATE_STARTED);
-		updateQRCodeInfo(state == Runtime.STATE_STARTED);
-
-		/* exit the activity if the runtime has exited */
+		updateUI(state);
+		
 		if(state == Runtime.STATE_STOPPED) {
 			AnodeService.removeInstance(instance);
 			instance = null;
-			isolate = null;
-			
-			//finish();
-		}
+			isolate = null;			
+		}		
 	}
 	
-	private String getStateString(int state) {
-		Resources res = ctx.getResources();
-		String result = null;
-		switch(state) {
-			case Runtime.STATE_CREATED:
-			result = res.getString(R.string.created);
-			break;
-			case Runtime.STATE_STARTED:
-			result = res.getString(R.string.started);
-			break;
-			case Runtime.STATE_STOPPING:
-			result = res.getString(R.string.stopping);
-			break;
-			case Runtime.STATE_STOPPED:
-			result = res.getString(R.string.stopped);
-			break;
-		}
-		return result;
-	}
-	
-	private String getWifiAddress() {
-		WifiManager wifiMgr = (WifiManager)getSystemService(WIFI_SERVICE);
-		String[] infos = wifiMgr.getDhcpInfo().toString().split(" ");
+	private String getWifiSSID() {
+		WifiManager wm = (WifiManager)getSystemService(WIFI_SERVICE);
 
-		for (int i = 0; i < infos.length; i += 2) { 
-			if (infos[i].equals("ipaddr")) {
-				return infos[i+1];
-			}
-		}
+		WifiInfo wi = wm.getConnectionInfo();
+		if (wi != null)
+			return wi.getSSID();
 		
-		return "0.0.0.0";
+		return null;
+	}
+
+	private String getWifiIpAddress() {
+		WifiManager wm = (WifiManager)getSystemService(WIFI_SERVICE);
+
+		WifiInfo wi = wm.getConnectionInfo();
+		if (wi != null)
+			return Integer.toString(wi.getIpAddress());
+		
+		return null;
 	}
 	
-	private void updateQRCodeInfo(boolean show)
+	private void updateWifiName(String ssid)
 	{
-		String wifiAddr = getWifiAddress();
+		String info = ctx.getResources().getString(R.string.ui_wifi_name);
+
+		if (ssid == null)
+			info += ctx.getResources().getString(R.string.ui_wifi_not_connected);
+		else
+			info += ssid;
 		
-		if (!show || wifiAddr.equals("0.0.0.0")) {
-			if (wifiAddr.equals("0.0.0.0")) {
-				String no_wifi = ctx.getResources().getString(R.string.no_wifi);
-				qrcodeText.setText(no_wifi);
-			} else {
-				qrcodeText.setText("");
-			}
-			
-			qrcodeImage.setImageBitmap(null);
-			
+		wifiName_textView.setText(info);
+	}
+	
+	private void updateURLToConnect(String url)
+	{
+		if (url != null)
+			urlToConnect_textView.setText(url);
+		else {
+			String errorText = ctx.getResources().getString(R.string.not_available);
+			urlToConnect_textView.setText(errorText);
+		}
+	}
+	
+	private void updateQRCode(String url)
+	{
+		if (url == null) {
+			qrcode_imageView.setImageBitmap(null);
 			return;
 		}
 		
-		// FIXME
-		// hardcode needs to be replaced in other way 
-		String qrcodeURL = "http://" + wifiAddr + ":8888";
-		qrcodeText.setText(qrcodeURL);
-
 		int smallerDimension = 200;
-		QRCodeEncoder qrEncoder = new QRCodeEncoder(qrcodeURL, null, Contents.Type.TEXT, BarcodeFormat.QR_CODE.toString(), smallerDimension);
+		QRCodeEncoder encoder = new QRCodeEncoder(url, null, Contents.Type.TEXT, BarcodeFormat.QR_CODE.toString(), smallerDimension);
 		try {
-			Bitmap qrcodeBitmap = qrEncoder.encodeAsBitmap();
-			qrcodeImage.setImageBitmap(qrcodeBitmap);
+			Bitmap bmp = encoder.encodeAsBitmap();
+			qrcode_imageView.setImageBitmap(bmp);
 		} catch (WriterException e) {
 			e.printStackTrace();
 		}
@@ -280,22 +302,6 @@ public class AnodeActivity extends Activity implements StateListener {
 	private void installModulesFromAssets(String[] moduleZips) {
 		try {
 			for (String zipName : moduleZips) {
-				String zipPath = extractAsset(zipName, Constants.RESOURCE_DIR);
-				if (zipPath != null) {
-					Intent intent = new Intent(AnodeReceiver.ACTION_INSTALL);
-					intent.putExtra(AnodeReceiver.PATH, zipPath);
-					intent.setClassName(ctx, AnodeService.class.getName());
-					ctx.startService(intent);
-				}
-			}			
-		} catch (IOException e) {
-			Log.v(TAG, "installModulesFromAssets: unable to install modules: " + e);
-		}
-	}
-	
-	private void installAppsFromAssets(String[] appZips) {
-		try {
-			for (String zipName : appZips) {
 				String zipPath = extractAsset(zipName, Constants.RESOURCE_DIR);
 				if (zipPath != null) {
 					Intent intent = new Intent(AnodeReceiver.ACTION_INSTALL);
