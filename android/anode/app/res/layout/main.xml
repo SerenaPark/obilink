@@ -66,6 +66,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:contentDescription="@string/ui_qrcode_description"
+        android:paddingTop="10dp"
         android:src="@drawable/icon" />
 
 </LinearLayout>

@@ -36,6 +36,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -255,7 +256,7 @@ public class AnodeActivity extends Activity implements StateListener {
 
 		WifiInfo wi = wm.getConnectionInfo();
 		if (wi != null)
-			return Integer.toString(wi.getIpAddress());
+			return Formatter.formatIpAddress(wi.getIpAddress());
 		
 		return null;
 	}
@@ -289,7 +290,7 @@ public class AnodeActivity extends Activity implements StateListener {
 			return;
 		}
 		
-		int smallerDimension = 200;
+		int smallerDimension = 150;
 		QRCodeEncoder encoder = new QRCodeEncoder(url, null, Contents.Type.TEXT, BarcodeFormat.QR_CODE.toString(), smallerDimension);
 		try {
 			Bitmap bmp = encoder.encodeAsBitmap();
