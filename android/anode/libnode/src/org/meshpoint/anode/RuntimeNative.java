@@ -51,7 +51,6 @@ final class RuntimeNative {
 		char sep = File.separatorChar;
 		String packageName = ctx.getPackageName();
 		
-		String modulePath = sep + "storage" + sep + "extSdCard" + sep + "node_modules";
 		String bridgePath = sep + "data" + sep + "data" + sep + packageName + sep + "node_modules";
 		String runtimePath = sep + "data" + sep + "data" + sep + packageName + sep + "app";
 		
@@ -60,8 +59,8 @@ final class RuntimeNative {
 			System.load(runtimePath + '/' + RUNTIME_LIBRARY);
 			extractLib(ctx, bridgePath, BRIDGE_LIBRARY);
 			System.load(bridgePath + '/' + BRIDGE_LIBRARY);
-			Log.v(TAG, "init: loaded libraries: modulePath = " + modulePath);
-			nodeInit(argv, modulePath);
+			Log.v(TAG, "init: loaded libraries: modulePath = " + bridgePath);
+			nodeInit(argv, bridgePath);
 		} catch(UnsatisfiedLinkError e) {
 			Log.v(TAG, "init: unable to load library: " + e);
 			throw e;

@@ -58,6 +58,9 @@ import com.google.zxing.WriterException;
 public class AnodeActivity extends Activity implements StateListener {
 
 	private static String TAG = "anode::AnodeActivity";
+	
+	private String modulesToInstall[] = { "express.zip", "obilink.app" };
+	
 	private Context ctx;
 	private Handler viewHandler = new Handler();
 	private long uiThread;
@@ -76,14 +79,18 @@ public class AnodeActivity extends Activity implements StateListener {
 		setContentView(R.layout.main);
 
 		Config.init(this);
-		Config.setDefaultAppPath(Config.DEFAULT_APP_PATH);
-
+		
 		ctx = getApplicationContext();		
 		instance = AnodeService.soleInstance();
 		
 		initUI();
 		
 		uiThread = viewHandler.getLooper().getThread().getId();
+		
+		if (savedInstanceState == null) {
+			installModulesFromAssets(modulesToInstall);
+			Config.setDefaultAppPath(Config.DEFAULT_APP_PATH);
+		}		
 	}
 
 	@Override
