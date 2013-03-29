@@ -20,10 +20,12 @@ MEIDA_TYPE_VIDEO_THUMBNAILS = 'video.thumbnails';
 
 MEDIA_COLUMN_ID = '_id';
 MEDIA_COLUMN_PATH = '_data';
-MEDIA_COLUMN_DISPLAY_NAME = '_display_name';
+MEDIA_COLUMN_FILE_NAME = '_display_name';
 MEDIA_COLUMN_TITLE = 'title';
+MEDIA_COLUMN_ARTIST = 'artist';
 MEDIA_COLUMN_ALBUM_ID = 'album_id';
 MEDIA_COLUMN_ALBUM_ART = 'album_art';
+MEDIA_COLUMN_ALBUM_NAME = 'album';
 MEDIA_COLUMN_THUMBNAILS_DATA = '_data';
 MEDIA_COLUMN_MINI_THUMB_MAGIC = 'mini_thumb_magic';
 
@@ -109,28 +111,37 @@ app.get('/getAudioList', function(req,res) {
   var audioCursor;
 
   if ((audioCursor = mr.prepare(MEIDA_TYPE_AUDIO))) {
-    var nameIndex = mr.getColumnIndex(audioCursor, MEDIA_COLUMN_TITLE);
+    var filenameIndex = mr.getColumnIndex(audioCursor, MEDIA_COLUMN_FILE_NAME);
+    var titleIndex = mr.getColumnIndex(audioCursor, MEDIA_COLUMN_TITLE);
     var pathIndex = mr.getColumnIndex(audioCursor, MEDIA_COLUMN_PATH);
     var albumIdIndex = mr.getColumnIndex(audioCursor, MEDIA_COLUMN_ALBUM_ID);
+    var artistIndex = mr.getColumnIndex(audioCursor, MEDIA_COLUMN_ARTIST);    
 
     if (mr.moveToFirst(audioCursor)) {      
       var path;
-      var name;
+      var filename;
+      var title;
       var albumId;
       var albumArt;
+      var albumName;
+      var artist;
 
       do {
         path = mr.getStringValue(audioCursor, pathIndex);
-        name = mr.getStringValue(audioCursor, nameIndex);
+        filename = mr.getStringValue(audioCursor, filenameIndex);
+        title = mr.getStringValue(audioCursor, titleIndex);
         albumId = mr.getStringValue(audioCursor, albumIdIndex);
+        artist = mr.getStringValue(audioCursor, artistIndex);
         albumArt = ""; //default album art
 
         var albumCursor;
         if ((albumCurosr = mr.prepare(MEIDA_TYPE_AUDIO_ALBUM, albumId))) {
           var albumArtIndex = mr.getColumnIndex(albumCurosr, MEDIA_COLUMN_ALBUM_ART);
+          var albumNameIndex = mr.getColumnIndex(albumCurosr, MEDIA_COLUMN_ALBUM_NAME);
 
           if (mr.moveToFirst(albumCurosr)) {      
               albumArt = mr.getStringValue(albumCurosr, albumArtIndex);
+              albumName = mr.getStringValue(albumCurosr, albumNameIndex);
           }
 
           mr.close(albumCursor);
@@ -141,7 +152,8 @@ app.get('/getAudioList', function(req,res) {
         else
           albumArt = '/thumb/audio' + albumArt + '.bmp';
 
-        var item = { 'path': '/audio' + path, 'name': name, 'type': 'a', 'thumb': albumArt };
+        //var item = { 'path': '/audio' + path, 'name': filename, 'type': 'a', 'title': title, 'artist': artist, 'album': albumName, 'thumb': albumArt };
+        var item = { 'path': '/audio' + path, 'name': filename, 'type': 'a', 'title': title, 'artist': artist, 'album': albumName, 'thumb': albumArt };
         rtn.push(item);
 
       } while (mr.moveToNext(audioCursor));      
