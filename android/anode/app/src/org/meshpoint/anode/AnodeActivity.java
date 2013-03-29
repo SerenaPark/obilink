@@ -79,18 +79,14 @@ public class AnodeActivity extends Activity implements StateListener {
 		setContentView(R.layout.main);
 
 		Config.init(this);
+		Config.setDefaultAppPath(Config.DEFAULT_APP_PATH);
 		
 		ctx = getApplicationContext();		
 		instance = AnodeService.soleInstance();
 		
 		initUI();
 		
-		uiThread = viewHandler.getLooper().getThread().getId();
-		
-		if (savedInstanceState == null) {
-			installModulesFromAssets(modulesToInstall);
-			Config.setDefaultAppPath(Config.DEFAULT_APP_PATH);
-		}		
+		uiThread = viewHandler.getLooper().getThread().getId();		
 	}
 
 	@Override
@@ -158,9 +154,7 @@ public class AnodeActivity extends Activity implements StateListener {
 	}
 
 	private boolean onInstallAppsSelected() {		
-		String moduleZips[] = { "express.zip", "obilink.app" };
-
-		installModulesFromAssets(moduleZips);
+		installModulesFromAssets(modulesToInstall);
 		return true;
 	}
 	
