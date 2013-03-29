@@ -46,6 +46,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.ImageView;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
 import org.obilink.util.QRCodeEncoder;
@@ -85,6 +86,13 @@ public class AnodeActivity extends Activity implements StateListener {
 		uiThread = viewHandler.getLooper().getThread().getId();
 	}
 
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+		updateUI(instance == null ? Runtime.STATE_CREATED : Runtime.STATE_STARTED);
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -129,7 +137,7 @@ public class AnodeActivity extends Activity implements StateListener {
 		
 		new AlertDialog.Builder(this)
 			.setTitle("앱 설정")
-			.setMessage("실행할 앱 위치를 입력해 주세요.")
+			.setMessage("메뉴에서 실행할 앱 위치를 입력해 주세요.")
 			.setView(input)
 			.setPositiveButton("적용", new DialogInterface.OnClickListener() {
 				@Override
@@ -143,31 +151,28 @@ public class AnodeActivity extends Activity implements StateListener {
 	}
 
 	private boolean onInstallAppsSelected() {		
-		String appZips[] = { "obilink.app" };
-		String moduleZips[] = { "express.zip" };
+		String moduleZips[] = { "express.zip", "obilink.app" };
 
 		installModulesFromAssets(moduleZips);
-		installAppsFromAssets(appZips);
 		return true;
 	}
 	
 	private void initUI() {
 		wifiName_textView = (TextView)findViewById(R.id.wifiName_textView);
 		urlToConnect_textView = (TextView)findViewById(R.id.urlToConnect_textView);
-		qrcode_imageView = (ImageView)findViewById(R.id.qrcode_imageView);
-
-		updateUI(instance == null ? Runtime.STATE_CREATED : Runtime.STATE_STARTED);
+		qrcode_imageView = (ImageView)findViewById(R.id.qrcode_imageView);		
 	}
 
 	private void updateUI(final int state) {
 		String url = null;
 		
 		if (state == Runtime.STATE_STARTED) {
-			String ipaddr = getWifiAddress();
+			String ipaddr = getWifiIpAddress();
 			if (ipaddr != null) 
 				url = "http://" + ipaddr + ":" + Config.getPort();
 		}
 		
+		updateWifiName(getWifiSSID());
 		updateURLToConnect(url);
 		updateQRCode(url);
 	}
@@ -234,37 +239,36 @@ public class AnodeActivity extends Activity implements StateListener {
 		}		
 	}
 	
-	private String getStateString(int state) {
-		Resources res = ctx.getResources();
-		String result = null;
-		switch(state) {
-			case Runtime.STATE_CREATED:
-			result = res.getString(R.string.created);
-			break;
-			case Runtime.STATE_STARTED:
-			result = res.getString(R.string.started);
-			break;
-			case Runtime.STATE_STOPPING:
-			result = res.getString(R.string.stopping);
-			break;
-			case Runtime.STATE_STOPPED:
-			result = res.getString(R.string.stopped);
-			break;
-		}
-		return result;
-	}
-	
-	private String getWifiAddress() {
-		WifiManager wifiMgr = (WifiManager)getSystemService(WIFI_SERVICE);
-		String[] infos = wifiMgr.getDhcpInfo().toString().split(" ");
+	private String getWifiSSID() {
+		WifiManager wm = (WifiManager)getSystemService(WIFI_SERVICE);
 
-		for (int i = 0; i < infos.length; i += 2) { 
-			if (infos[i].equals("ipaddr")) {
-				return infos[i+1];
-			}
-		}
+		WifiInfo wi = wm.getConnectionInfo();
+		if (wi != null)
+			return wi.getSSID();
 		
 		return null;
+	}
+
+	private String getWifiIpAddress() {
+		WifiManager wm = (WifiManager)getSystemService(WIFI_SERVICE);
+
+		WifiInfo wi = wm.getConnectionInfo();
+		if (wi != null)
+			return Integer.toString(wi.getIpAddress());
+		
+		return null;
+	}
+	
+	private void updateWifiName(String ssid)
+	{
+		String info = ctx.getResources().getString(R.string.ui_wifi_name);
+
+		if (ssid == null)
+			info += ctx.getResources().getString(R.string.ui_wifi_not_connected);
+		else
+			info += ssid;
+		
+		wifiName_textView.setText(info);
 	}
 	
 	private void updateURLToConnect(String url)
@@ -297,22 +301,6 @@ public class AnodeActivity extends Activity implements StateListener {
 	private void installModulesFromAssets(String[] moduleZips) {
 		try {
 			for (String zipName : moduleZips) {
-				String zipPath = extractAsset(zipName, Constants.RESOURCE_DIR);
-				if (zipPath != null) {
-					Intent intent = new Intent(AnodeReceiver.ACTION_INSTALL);
-					intent.putExtra(AnodeReceiver.PATH, zipPath);
-					intent.setClassName(ctx, AnodeService.class.getName());
-					ctx.startService(intent);
-				}
-			}			
-		} catch (IOException e) {
-			Log.v(TAG, "installModulesFromAssets: unable to install modules: " + e);
-		}
-	}
-	
-	private void installAppsFromAssets(String[] appZips) {
-		try {
-			for (String zipName : appZips) {
 				String zipPath = extractAsset(zipName, Constants.RESOURCE_DIR);
 				if (zipPath != null) {
 					Intent intent = new Intent(AnodeReceiver.ACTION_INSTALL);
